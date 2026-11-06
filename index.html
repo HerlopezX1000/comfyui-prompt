@@ -1,0 +1,3383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComfyUI Prompt Studio Pro — Generador Local Español → Inglés Técnico</title>
+  <meta name="description" content="Generador profesional 100% local de prompts en inglés técnico para ComfyUI (Flux.1, Qwen Image, SDXL, Pony) con interfaz en español y soporte nativo para LoRAs y Trigger Words." />
+  <style>
+    :root {
+      --bg-main: #0a0e1a;
+      --bg-elevated: #0f1628;
+      --bg-card: #131b2e;
+      --bg-card-hover: #18233c;
+      --bg-input: #0b1120;
+      --border-subtle: #1e293b;
+      --border-focus: #334155;
+      --accent-cyan: #01f1fe;
+      --accent-cyan-dim: rgba(1, 241, 254, 0.14);
+      --accent-cyan-glow: rgba(1, 241, 254, 0.28);
+      --accent-orange: #ff9c00;
+      --accent-orange-dim: rgba(255, 156, 0, 0.15);
+      --accent-orange-glow: rgba(255, 156, 0, 0.32);
+      --accent-emerald: #10b981;
+      --accent-danger: #f43f5e;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-card: 0 12px 32px -8px rgba(0, 0, 0, 0.55);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(circle at 12% 8%, rgba(1, 241, 254, 0.06) 0%, transparent 35%),
+        radial-gradient(circle at 88% 14%, rgba(255, 156, 0, 0.06) 0%, transparent 35%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #26344d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374b6d;
+    }
+
+    /* Header */
+    .app-header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(10, 14, 26, 0.88);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-inner {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(1, 241, 254, 0.18), rgba(255, 156, 0, 0.18));
+      border: 1px solid rgba(1, 241, 254, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px rgba(1, 241, 254, 0.15);
+      flex-shrink: 0;
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--accent-cyan);
+    }
+
+    .brand-title-wrap h1 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .badge-pro {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-cyan-dim);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(1, 241, 254, 0.35);
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    /* Quick Presets Bar */
+    .presets-section {
+      max-width: 1560px;
+      margin: 1.15rem auto 0;
+      padding: 0 1.5rem;
+    }
+
+    .presets-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1.1rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .presets-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .presets-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .presets-title span.accent {
+      color: var(--accent-cyan);
+    }
+
+    .presets-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .preset-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent-cyan);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent-cyan);
+      background: var(--accent-cyan-dim);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(1, 241, 254, 0.14);
+    }
+
+    .preset-icon {
+      font-size: 1rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .preset-meta {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .preset-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preset-arch {
+      font-size: 0.66rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Main Two-Column Layout (60% / 40%) */
+    .workspace-container {
+      max-width: 1560px;
+      margin: 1.15rem auto 3rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+      gap: 1.35rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .workspace-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .right-column {
+      position: sticky;
+      top: 4.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .right-column {
+        position: static;
+      }
+    }
+
+    /* Panels & Cards */
+    .studio-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: border-color var(--transition-fast);
+    }
+
+    .studio-card.priority-lora {
+      border-color: rgba(255, 156, 0, 0.42);
+      background: linear-gradient(180deg, rgba(255, 156, 0, 0.05) 0%, var(--bg-card) 38%);
+    }
+
+    .card-header {
+      padding: 0.95rem 1.2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: rgba(15, 22, 40, 0.55);
+    }
+
+    .card-header.collapsible {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card-header.collapsible:hover {
+      background: rgba(24, 35, 60, 0.7);
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .section-index {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      background: var(--accent-cyan-dim);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(1, 241, 254, 0.3);
+    }
+
+    .priority-lora .section-index {
+      background: var(--accent-orange-dim);
+      color: var(--accent-orange);
+      border-color: rgba(255, 156, 0, 0.4);
+    }
+
+    .card-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .card-body {
+      padding: 1.15rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .card-body.collapsed {
+      display: none;
+    }
+
+    .collapse-chevron {
+      color: var(--text-secondary);
+      transition: transform var(--transition-fast);
+      font-size: 0.85rem;
+    }
+
+    .card-header.is-collapsed .collapse-chevron {
+      transform: rotate(-90deg);
+    }
+
+    /* Architecture Selector */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .arch-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .arch-option {
+      position: relative;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      text-align: left;
+    }
+
+    .arch-option:hover {
+      border-color: #3b4f71;
+      background: var(--bg-card-hover);
+    }
+
+    .arch-option.active {
+      border-color: var(--accent-cyan);
+      background: rgba(1, 241, 254, 0.08);
+      box-shadow: 0 0 18px rgba(1, 241, 254, 0.12);
+    }
+
+    .arch-option-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .arch-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .arch-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.12rem 0.48rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .arch-option.active .arch-tag {
+      background: var(--accent-cyan);
+      color: #041016;
+    }
+
+    .arch-desc {
+      font-size: 0.77rem;
+      color: var(--text-secondary);
+      line-height: 1.38;
+    }
+
+    /* LoRA Trigger Word Controls */
+    .lora-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 0.9rem;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .lora-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+    }
+
+    .field-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .field-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .field-label.orange {
+      color: var(--accent-orange);
+    }
+
+    .field-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+
+    .text-input,
+    .select-input,
+    .textarea-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 0.62rem 0.82rem;
+      font-size: 0.86rem;
+      font-family: var(--font-sans);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .text-input:focus,
+    .select-input:focus,
+    .textarea-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(1, 241, 254, 0.14);
+    }
+
+    .text-input.lora-input {
+      border-color: rgba(255, 156, 0, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+    }
+
+    .text-input.lora-input:focus {
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 0 3px rgba(255, 156, 0, 0.2);
+    }
+
+    .lora-quick-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.25rem;
+    }
+
+    .mini-chip {
+      background: rgba(255, 156, 0, 0.1);
+      border: 1px solid rgba(255, 156, 0, 0.3);
+      color: #ffc266;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 0.18rem 0.48rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .mini-chip:hover {
+      background: rgba(255, 156, 0, 0.22);
+      border-color: var(--accent-orange);
+      color: #fff;
+    }
+
+    /* Segmented Toggle */
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.2rem;
+      gap: 0.2rem;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.45rem 0.55rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .seg-btn.active {
+      background: var(--accent-orange);
+      color: #0a0e1a;
+      font-weight: 700;
+    }
+
+    /* Slider */
+    .slider-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+    }
+
+    .slider-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+    }
+
+    .slider-val-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent-orange);
+      background: var(--accent-orange-dim);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 156, 0, 0.35);
+    }
+
+    input[type="range"].studio-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].studio-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-orange);
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(255, 156, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .checkbox-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+      margin-top: 0.2rem;
+    }
+
+    .checkbox-inline input {
+      accent-color: var(--accent-cyan);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    /* Scene Constructor Chips */
+    .scene-block {
+      background: rgba(11, 17, 32, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.42rem;
+    }
+
+    .chip-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 999px;
+      padding: 0.34rem 0.75rem;
+      font-size: 0.77rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+      background: var(--bg-card-hover);
+    }
+
+    .chip-btn.active {
+      background: var(--accent-cyan-dim);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(1, 241, 254, 0.18);
+    }
+
+    .translation-helper-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .translated-preview-pill {
+      font-family: var(--font-mono);
+      font-size: 0.71rem;
+      color: var(--accent-cyan);
+      background: rgba(1, 241, 254, 0.08);
+      border: 1px solid rgba(1, 241, 254, 0.22);
+      padding: 0.14rem 0.5rem;
+      border-radius: 4px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Photographic Parameters Grid */
+    .params-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+      .params-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .param-box {
+      background: rgba(11, 17, 32, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .param-box.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .token-preview {
+      font-family: var(--font-mono);
+      font-size: 0.71rem;
+      color: #67e8f9;
+      background: rgba(1, 241, 254, 0.06);
+      border-left: 2px solid var(--accent-cyan);
+      padding: 0.3rem 0.55rem;
+      border-radius: 0 4px 4px 0;
+      min-height: 1.65rem;
+      display: flex;
+      align-items: center;
+      word-break: break-word;
+    }
+
+    /* Boosters Multi-Select Grid */
+    .boosters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .booster-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.7rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      text-align: left;
+    }
+
+    .booster-card:hover {
+      border-color: var(--accent-cyan);
+      background: var(--bg-card-hover);
+    }
+
+    .booster-card.active {
+      background: var(--accent-cyan-dim);
+      border-color: var(--accent-cyan);
+    }
+
+    .booster-check {
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      border: 1px solid var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+      color: transparent;
+    }
+
+    .booster-card.active .booster-check {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: #05101a;
+      font-weight: 900;
+    }
+
+    .booster-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+    }
+
+    .booster-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .booster-tokens {
+      font-size: 0.67rem;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    /* Right Panel: Prompt Output & Controls */
+    .output-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(1, 241, 254, 0.35);
+      border-radius: var(--radius-md);
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 24px rgba(1, 241, 254, 0.07);
+      overflow: hidden;
+    }
+
+    .output-header {
+      padding: 0.9rem 1.15rem;
+      background: linear-gradient(90deg, rgba(1, 241, 254, 0.1), rgba(255, 156, 0, 0.08));
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .output-header-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .token-counter {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-cyan);
+      background: rgba(1, 241, 254, 0.1);
+      border: 1px solid rgba(1, 241, 254, 0.3);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .output-body {
+      padding: 1.05rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.95rem;
+    }
+
+    .prompt-box-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 0.35rem;
+    }
+
+    .prompt-display {
+      background: #070b14;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 0.95rem;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      line-height: 1.62;
+      color: #e2e8f0;
+      min-height: 132px;
+      max-height: 250px;
+      overflow-y: auto;
+      word-break: break-word;
+      user-select: all;
+    }
+
+    .prompt-display .trigger-highlight {
+      background: rgba(255, 156, 0, 0.2);
+      color: #ffb74d;
+      border: 1px solid rgba(255, 156, 0, 0.55);
+      padding: 0.06rem 0.38rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .prompt-display .pony-highlight {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .btn-copy-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent-orange), #ff7b00);
+      color: #080c16;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 1rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 6px 20px rgba(255, 156, 0, 0.3);
+    }
+
+    .btn-copy-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(255, 156, 0, 0.45);
+      filter: brightness(1.06);
+    }
+
+    .btn-copy-primary.copied {
+      background: var(--accent-emerald);
+      color: #04130d;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Action Buttons Bar */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+    }
+
+    .btn-action {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-action:hover {
+      border-color: var(--accent-cyan);
+      background: var(--bg-card-hover);
+    }
+
+    .btn-action.generate-btn {
+      border-color: rgba(1, 241, 254, 0.45);
+      background: var(--accent-cyan-dim);
+      color: var(--accent-cyan);
+    }
+
+    .btn-action.generate-btn:hover {
+      background: rgba(1, 241, 254, 0.24);
+    }
+
+    .btn-action.danger-btn:hover {
+      border-color: var(--accent-danger);
+      color: #fda4af;
+    }
+
+    /* Negative Prompt Box */
+    .negative-box {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .neg-textarea {
+      width: 100%;
+      min-height: 78px;
+      resize: vertical;
+      background: #070b14;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      line-height: 1.5;
+      color: #fca5a5;
+    }
+
+    .neg-textarea:focus {
+      outline: none;
+      border-color: var(--accent-danger);
+    }
+
+    .btn-copy-negative {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fda4af;
+      border-radius: var(--radius-sm);
+      padding: 0.52rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-copy-negative:hover {
+      background: rgba(244, 63, 94, 0.22);
+      border-color: var(--accent-danger);
+      color: #fff;
+    }
+
+    /* KSampler Recommendations Bar */
+    .ksampler-bar {
+      background: rgba(11, 17, 32, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .ksampler-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ksampler-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.38rem;
+    }
+
+    .ks-badge {
+      font-family: var(--font-mono);
+      font-size: 0.69rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0.18rem 0.48rem;
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+
+    .ks-badge strong {
+      color: var(--accent-cyan);
+    }
+
+    /* Local History Card */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      max-height: 290px;
+      overflow-y: auto;
+    }
+
+    .history-empty {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 1.1rem 0.5rem;
+    }
+
+    .history-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color var(--transition-fast);
+    }
+
+    .history-item:hover {
+      border-color: #334155;
+    }
+
+    .history-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      font-size: 0.69rem;
+      color: var(--text-muted);
+    }
+
+    .history-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hist-arch-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.08rem 0.38rem;
+      border-radius: 4px;
+      background: var(--accent-cyan-dim);
+      color: var(--accent-cyan);
+    }
+
+    .hist-lora-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.08rem 0.38rem;
+      border-radius: 4px;
+      background: var(--accent-orange-dim);
+      color: var(--accent-orange);
+    }
+
+    .history-text {
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      color: var(--text-primary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.45;
+    }
+
+    .history-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+
+    .hist-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .hist-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--accent-cyan);
+    }
+
+    /* Dictionary Modal / Drawer Inspector */
+    .dict-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(1, 241, 254, 0.06);
+      border: 1px solid rgba(1, 241, 254, 0.22);
+      border-radius: var(--radius-sm);
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    /* Toast Notification Container */
+    .toast-container {
+      position: fixed;
+      bottom: 1.35rem;
+      right: 1.35rem;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: #111a2e;
+      border: 1px solid var(--accent-cyan);
+      color: var(--text-primary);
+      padding: 0.72rem 1rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 16px rgba(1, 241, 254, 0.2);
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      animation: toastIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .toast.orange {
+      border-color: var(--accent-orange);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 16px rgba(255, 156, 0, 0.24);
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .footer-note {
+      max-width: 1560px;
+      margin: 0 auto 2rem;
+      padding: 0 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <h1>
+            ComfyUI Prompt Studio
+            <span class="badge-pro">PRO · 100% LOCAL</span>
+          </h1>
+          <p class="brand-subtitle">Controles en Español → Salida en Inglés Técnico Optimizado (Flux.1 · Qwen Image · SDXL · Pony + LoRA Trigger Words)</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-pill" title="Motor de traducción técnico ejecutándose 100% offline en tu navegador">
+          <span class="status-dot"></span>
+          Motor Offline Activo (<span id="dictTermsCount">240+</span> términos ES→EN)
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick 1-Click Presets -->
+  <section class="presets-section" aria-label="Presets Rápidos de 1 Clic">
+    <div class="presets-card">
+      <div class="presets-header">
+        <div class="presets-title">
+          <span>⚡</span> Presets Rápidos de 1 Clic <span class="accent">(Configuraciones de Estudio)</span>
+        </div>
+        <div class="presets-hint">Haz clic en cualquier preset para cargar todos sus parámetros y LoRA al instante</div>
+      </div>
+      <div class="presets-grid" id="presetsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Main Workspace (60% Left Controls / 40% Right Sticky Output) -->
+  <main class="workspace-container">
+
+    <!-- LEFT COLUMN: Controls & Constructor -->
+    <div class="left-column">
+
+      <!-- SECTION A: Architecture & LoRA Trigger Word Module (High Priority) -->
+      <section class="studio-card priority-lora" id="sectionLora">
+        <div class="card-header collapsible" data-target="bodyLora">
+          <div class="card-title-group">
+            <span class="section-index">A</span>
+            <div>
+              <h2 class="card-title">Módulo Especial de LoRA y Arquitectura del Modelo</h2>
+              <p class="card-subtitle">Selecciona el motor de estructuración del prompt e inyecta tu Trigger Word con peso personalizado</p>
+            </div>
+          </div>
+          <span class="collapse-chevron">▼</span>
+        </div>
+        <div class="card-body" id="bodyLora">
+          <!-- Model Target Selector -->
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label">1. Selector de Modelo Objetivo (Formato del Prompt)</label>
+              <span class="field-sub" id="archModeHint">Lenguaje natural fluido para modelos con T5/LLM</span>
+            </div>
+            <div class="arch-grid" role="radiogroup" aria-label="Selector de arquitectura">
+              <button type="button" class="arch-option active" id="archFluxBtn" data-arch="flux">
+                <div class="arch-option-header">
+                  <span class="arch-name">✨ Flux.1 / Qwen Image</span>
+                  <span class="arch-tag">LENGUAJE NATURAL</span>
+                </div>
+                <p class="arch-desc">Une los elementos con conectores gramaticales fluidos en inglés (<em>"A cinematic portrait of..., illuminated by..., captured with..."</em>).</p>
+              </button>
+              <button type="button" class="arch-option" id="archSdxlBtn" data-arch="sdxl">
+                <div class="arch-option-header">
+                  <span class="arch-name">🏷️ SDXL / Pony Diffusion</span>
+                  <span class="arch-tag">BASADO EN TAGS</span>
+                </div>
+                <p class="arch-desc">Estructura el prompt separado por comas con tokens precisos, pesos de énfasis y soporte opcional de tags de calidad Pony V6.</p>
+              </button>
+            </div>
+            <label class="checkbox-inline" id="ponyPrefixWrap" style="display: none;">
+              <input type="checkbox" id="ponyPrefixToggle" />
+              <span>Incluir prefijo de calidad Pony Diffusion V6 (<code>score_9, score_8_up, score_7_up, source_real</code>)</span>
+            </label>
+          </div>
+
+          <!-- Trigger Word Controls -->
+          <div class="lora-grid">
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label orange" for="triggerWordInput">🎯 Trigger Word (LoRA)</label>
+                <span class="field-sub">Se conserva intacto y resaltado en el prompt</span>
+              </div>
+              <input
+                type="text"
+                id="triggerWordInput"
+                class="text-input lora-input"
+                placeholder="Ej: ohwx woman, cyberpunk_style_v2, <lora:mi_lora:0.8>..."
+                autocomplete="off"
+              />
+              <div class="lora-quick-row">
+                <span class="field-sub" style="margin-right: 0.2rem;">Ejemplos rápidos:</span>
+                <button type="button" class="mini-chip" data-lora="ohwx woman">ohwx woman</button>
+                <button type="button" class="mini-chip" data-lora="cyberpunk_style_v2">cyberpunk_style_v2</button>
+                <button type="button" class="mini-chip" data-lora="<lora:flux_realism_v2:0.85>">&lt;lora:flux_realism:0.85&gt;</button>
+                <button type="button" class="mini-chip" data-lora="s3r4ph1m_char, glowing_armor">s3r4ph1m_char</button>
+                <button type="button" class="mini-chip" data-lora="">Limpiar LoRA</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Posición y Peso del Trigger Word</label>
+              <div class="segmented-control" role="radiogroup" aria-label="Posición del Trigger Word">
+                <button type="button" class="seg-btn active" id="posStartBtn" data-pos="start">Al principio (Recomendado)</button>
+                <button type="button" class="seg-btn" id="posSubjectBtn" data-pos="subject">Integrado en el sujeto</button>
+              </div>
+
+              <div class="slider-wrap">
+                <div class="slider-top">
+                  <span>Peso / Énfasis del Trigger:</span>
+                  <span class="slider-val-badge" id="loraWeightBadge">1.0</span>
+                </div>
+                <input
+                  type="range"
+                  id="loraWeightSlider"
+                  class="studio-slider"
+                  min="0.1"
+                  max="1.5"
+                  step="0.05"
+                  value="1.0"
+                />
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="forceWeightSyntax" />
+                  <span>Forzar paréntesis de énfasis <code>(trigger:peso)</code> incluso en 1.0</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: Scene Constructor (Spanish Chips + Local ES->EN Dictionary) -->
+      <section class="studio-card" id="sectionScene">
+        <div class="card-header collapsible" data-target="bodyScene">
+          <div class="card-title-group">
+            <span class="section-index">B</span>
+            <div>
+              <h2 class="card-title">Constructor de Escena (Asistencia y Traducción Local ES → EN)</h2>
+              <p class="card-subtitle">Combina píldoras rápidas en español o escribe detalles libres (se traducen automáticamente al inglés)</p>
+            </div>
+          </div>
+          <span class="collapse-chevron">▼</span>
+        </div>
+        <div class="card-body" id="bodyScene">
+
+          <div class="dict-bar">
+            <span>🔤 <strong>Traductor Técnico Local Activo:</strong> Si escribes palabras en español en los campos de texto libre (ej. <em>"cabello plateado, armadura dorada, niebla densa, ojos brillantes"</em>), se traducen automáticamente a inglés técnico.</span>
+          </div>
+
+          <!-- 1. Main Subject -->
+          <div class="scene-block">
+            <div class="field-label-row">
+              <label class="field-label" for="customSubjectInput">1. Sujeto Principal (Selecciona uno o varios chips + detalles adicionales)</label>
+              <span class="field-sub">Múltiple selección permitida</span>
+            </div>
+            <div class="chips-wrap" id="subjectChips"></div>
+            <input
+              type="text"
+              id="customSubjectInput"
+              class="text-input"
+              placeholder="Detalles adicionales del sujeto en español o inglés (ej: cabello plateado, cicatriz luminosa, chaqueta de cuero negro)..."
+              autocomplete="off"
+            />
+            <div class="translation-helper-row">
+              <span>Traducción activa del sujeto:</span>
+              <span class="translated-preview-pill" id="subjectTranslationPreview">Sin detalles personalizados adicionales</span>
+            </div>
+          </div>
+
+          <!-- 2. Action / Pose -->
+          <div class="scene-block">
+            <div class="field-label-row">
+              <label class="field-label" for="customActionInput">2. Acción / Pose Dinámica</label>
+              <span class="field-sub">Define qué hace el sujeto</span>
+            </div>
+            <div class="chips-wrap" id="actionChips"></div>
+            <input
+              type="text"
+              id="customActionInput"
+              class="text-input"
+              placeholder="Detalles adicionales de acción o expresión (ej: sosteniendo una katana láser, sonrisa misteriosa)..."
+              autocomplete="off"
+            />
+            <div class="translation-helper-row">
+              <span>Traducción activa de acción:</span>
+              <span class="translated-preview-pill" id="actionTranslationPreview">Sin acción personalizada adicional</span>
+            </div>
+          </div>
+
+          <!-- 3. Environment / Setting -->
+          <div class="scene-block">
+            <div class="field-label-row">
+              <label class="field-label" for="customEnvInput">3. Entorno / Escenario</label>
+              <span class="field-sub">Ubicación y atmósfera espacial</span>
+            </div>
+            <div class="chips-wrap" id="envChips"></div>
+            <input
+              type="text"
+              id="customEnvInput"
+              class="text-input"
+              placeholder="Detalles adicionales del escenario (ej: lluvia intensa, hologramas flotantes, charcos de agua)..."
+              autocomplete="off"
+            />
+            <div class="translation-helper-row">
+              <span>Traducción activa del entorno:</span>
+              <span class="translated-preview-pill" id="envTranslationPreview">Sin entorno personalizado adicional</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION C: Photographic & Cinematic Parameters -->
+      <section class="studio-card" id="sectionPhoto">
+        <div class="card-header collapsible" data-target="bodyPhoto">
+          <div class="card-title-group">
+            <span class="section-index">C</span>
+            <div>
+              <h2 class="card-title">Parámetros Fotográficos, Ópticos y Cinematográficos</h2>
+              <p class="card-subtitle">Cada opción en español inyecta su equivalente fotográfico profesional en inglés de alta precisión</p>
+            </div>
+          </div>
+          <span class="collapse-chevron">▼</span>
+        </div>
+        <div class="card-body" id="bodyPhoto">
+          <div class="params-grid">
+
+            <!-- 1. Tipo de Imagen / Medio -->
+            <div class="param-box">
+              <label class="field-label" for="selectMedium">1. Tipo de Imagen / Medio</label>
+              <select id="selectMedium" class="select-input"></select>
+              <div class="token-preview" id="previewMedium"></div>
+            </div>
+
+            <!-- 2. Tipo de Plano y Ángulo de Cámara -->
+            <div class="param-box">
+              <label class="field-label" for="selectShot">2. Tipo de Plano y Ángulo de Cámara</label>
+              <select id="selectShot" class="select-input"></select>
+              <div class="token-preview" id="previewShot"></div>
+            </div>
+
+            <!-- 3. Iluminación y Atmósfera -->
+            <div class="param-box">
+              <label class="field-label" for="selectLighting">3. Iluminación y Atmósfera</label>
+              <select id="selectLighting" class="select-input"></select>
+              <div class="token-preview" id="previewLighting"></div>
+            </div>
+
+            <!-- 4. Cámara, Lente y Película -->
+            <div class="param-box">
+              <label class="field-label" for="selectLens">4. Cámara, Lente y Película</label>
+              <select id="selectLens" class="select-input"></select>
+              <div class="token-preview" id="previewLens"></div>
+            </div>
+
+            <!-- 5. Composición y Colorimetría -->
+            <div class="param-box full-width">
+              <label class="field-label" for="selectComposition">5. Composición y Colorimetría</label>
+              <select id="selectComposition" class="select-input"></select>
+              <div class="token-preview" id="previewComposition"></div>
+            </div>
+
+            <!-- 6. Nivel de Calidad y Detalles Técnicos (Boosters) -->
+            <div class="param-box full-width">
+              <div class="field-label-row">
+                <label class="field-label">6. Nivel de Calidad y Detalles Técnicos (Boosters Combinables)</label>
+                <span class="field-sub">Activa uno o varios boosters técnicos</span>
+              </div>
+              <div class="boosters-grid" id="boostersGrid"></div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Sticky Output, Actions, Negative Prompt & Local History -->
+    <aside class="right-column" aria-label="Panel de Resultados y Acciones">
+
+      <div class="output-card">
+        <div class="output-header">
+          <div class="output-header-title">
+            <span>🚀</span> Prompt Final en Inglés Técnico
+          </div>
+          <span class="token-counter" id="tokenCounterBadge">0 palabras · ~0 tokens</span>
+        </div>
+
+        <div class="output-body">
+          <!-- Positive Prompt -->
+          <div>
+            <div class="prompt-box-label">
+              <span>Prompt Positivo (<span id="activeArchLabel">Flux.1 / Qwen</span>)</span>
+              <span style="color: var(--accent-orange); font-size: 0.7rem;" id="triggerStatusLabel">Sin Trigger Word</span>
+            </div>
+            <div class="prompt-display" id="positivePromptDisplay" aria-live="polite"></div>
+          </div>
+
+          <!-- Primary Copy Button -->
+          <button type="button" class="btn-copy-primary" id="btnCopyPositive">
+            <span id="copyPositiveText">📋 Copiar Prompt</span>
+          </button>
+
+          <!-- Interactive Action Buttons -->
+          <div class="actions-grid">
+            <button type="button" class="btn-action generate-btn" id="btnGeneratePrompt" title="Construye el prompt y lo guarda en el historial local">
+              ✨ Generar / Actualizar Prompt
+            </button>
+            <button type="button" class="btn-action" id="btnRandomize" title="Cambia aleatoriamente iluminación, plano, lente y atmósfera conservando Trigger Word y sujeto">
+              🎲 Variación Aleatoria Inteligente
+            </button>
+            <button type="button" class="btn-action" id="btnExportTxt" title="Descarga archivo .txt con Prompt Positivo, Negative Prompt y configuración">
+              💾 Exportar .txt
+            </button>
+            <button type="button" class="btn-action danger-btn" id="btnClearAll" title="Restaura todos los controles a sus valores por defecto">
+              🧹 Limpiar Todo
+            </button>
+          </div>
+
+          <!-- Negative Prompt Section -->
+          <div class="negative-box">
+            <div class="field-label-row">
+              <label class="field-label" for="selectNegativePreset" style="font-size: 0.79rem;">Negative Prompt (En Inglés)</label>
+              <span class="field-sub">Preset en Español:</span>
+            </div>
+            <select id="selectNegativePreset" class="select-input" style="font-size: 0.8rem; padding: 0.48rem 0.7rem;"></select>
+            <textarea id="negativePromptTextarea" class="neg-textarea" spellcheck="false" aria-label="Negative Prompt en inglés"></textarea>
+            <button type="button" class="btn-copy-negative" id="btnCopyNegative">
+              <span id="copyNegativeText">📋 Copiar Negative</span>
+            </button>
+          </div>
+
+          <!-- Recommended ComfyUI KSampler Settings -->
+          <div class="ksampler-bar">
+            <div class="ksampler-title">
+              <span>⚙️ Parámetros KSampler Sugeridos en ComfyUI</span>
+              <span id="ksamplerArchTag" style="color: var(--accent-cyan);">FLUX.1 DEV</span>
+            </div>
+            <div class="ksampler-badges" id="ksamplerBadges"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LocalStorage History Card -->
+      <div class="studio-card">
+        <div class="card-header" style="padding: 0.75rem 1.1rem;">
+          <div class="card-title-group">
+            <span class="section-index">H</span>
+            <div>
+              <h3 class="card-title" style="font-size: 0.88rem;">Historial Local de Prompts</h3>
+              <p class="card-subtitle" style="font-size: 0.71rem;">Guardado automáticamente en tu navegador (localStorage)</p>
+            </div>
+          </div>
+          <button type="button" class="hist-btn" id="btnClearHistory" title="Borrar historial guardado">Vaciar</button>
+        </div>
+        <div class="card-body" style="padding: 0.85rem 1.1rem;">
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <footer class="footer-note">
+    ComfyUI Prompt Studio Pro · Ejecución 100% Local y Autónoma sin dependencias externas · Diseñado para flujos de trabajo con LoRA, Flux.1, Qwen Image, SDXL y Pony Diffusion.
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <script>
+    /*************************************************************************
+     * 1. EXTENSIVE SPANISH -> TECHNICAL ENGLISH DICTIONARY & PARAMETER DATA
+     *************************************************************************/
+
+    // A. Scene Constructor Predefined Chips (Spanish UI -> High-precision English tokens)
+    const SUBJECT_OPTIONS = [
+      {
+        id: "cyber_warrior",
+        label: "🦾 Guerrero Cyberpunk",
+        en_natural: "a cybernetic street samurai warrior with glowing neural implants and sleek tactical carbon armor",
+        en_tags: "cybernetic street samurai warrior, glowing neural implants, sleek tactical carbon armor, cyberware details"
+      },
+      {
+        id: "lone_astronaut",
+        label: "👩‍🚀 Astronauta solitario",
+        en_natural: "a lone astronaut wearing a weathered high-tech EVA spacesuit with a reflective gold visor",
+        en_tags: "lone astronaut, weathered high-tech EVA spacesuit, reflective visor, intricate suit micro-details"
+      },
+      {
+        id: "hyper_woman",
+        label: "👩 Retrato de mujer hiperrealista",
+        en_natural: "a striking hyperrealistic woman with expressive eyes, natural freckles, and finely detailed hair strands",
+        en_tags: "1girl, striking hyperrealistic woman, expressive detailed eyes, natural skin freckles, fine hair strands"
+      },
+      {
+        id: "humanoid_robot",
+        label: "🤖 Robot humanoide",
+        en_natural: "an advanced humanoid android with translucent porcelain plating and exposed precision titanium mechanisms",
+        en_tags: "advanced humanoid android, translucent porcelain plating, exposed titanium mechanisms, glowing optical sensors"
+      },
+      {
+        id: "futuristic_car",
+        label: "🏎️ Vehículo deportivo futurista",
+        en_natural: "a sleek futuristic aerodynamic hypercar with gullwing doors, carbon weave bodywork, and glowing propulsion vents",
+        en_tags: "sleek futuristic aerodynamic hypercar, carbon fiber bodywork, glowing propulsion vents, automotive design"
+      },
+      {
+        id: "mythic_creature",
+        label: "🐉 Criatura mitológica",
+        en_natural: "an ancient majestic mythological dragon-hybrid beast with iridescent scales and glowing ethereal horns",
+        en_tags: "ancient majestic mythological creature, iridescent scales, glowing ethereal horns, intricate organic textures"
+      },
+      {
+        id: "luxury_product",
+        label: "💎 Producto comercial de lujo",
+        en_natural: "a bespoke luxury commercial perfume bottle crafted from faceted smoked crystal and brushed 24k gold",
+        en_tags: "luxury commercial hero product bottle, faceted smoked crystal, brushed 24k gold accents, flawless product surface"
+      },
+      {
+        id: "wise_elder",
+        label: "🧙‍♂️ Sabio anciano",
+        en_natural: "a weathered wise elder with deep expressive facial wrinkles, braided silver beard, and piercing gaze",
+        en_tags: "weathered wise elder man, deep facial wrinkles, braided silver beard, piercing intelligent gaze, detailed robe"
+      },
+      {
+        id: "dark_sorceress",
+        label: "🔮 Hechicera Dark Fantasy",
+        en_natural: "a regal dark fantasy sorceress wearing ornate obsidian filigree armor and a flowing velvet cloak",
+        en_tags: "regal dark fantasy sorceress, ornate obsidian filigree armor, flowing velvet cloak, arcane aura"
+      },
+      {
+        id: "mecha_titan",
+        label: "🛡️ Mecha de Combate Pesado",
+        en_natural: "a colossal heavily-armored tactical mecha unit with weathered hydraulic joints and glowing cockpit sensors",
+        en_tags: "colossal heavy tactical mecha, weathered hydraulic joints, glowing cockpit sensors, industrial hard-surface design"
+      }
+    ];
+
+    const ACTION_OPTIONS = [
+      {
+        id: "staring_camera",
+        label: "👁️ Mirando fijamente a cámara",
+        en_natural: "looking directly into the camera with an intense, captivating gaze",
+        en_tags: "looking at viewer, intense eye contact, captivating expression"
+      },
+      {
+        id: "combat_stance",
+        label: "⚔️ En posición de combate",
+        en_natural: "poised in a dynamic low combat stance, ready to strike with kinetic tension",
+        en_tags: "dynamic combat stance, action pose, ready to strike, kinetic tension"
+      },
+      {
+        id: "walking_rain",
+        label: "🌧️ Caminando bajo la lluvia",
+        en_natural: "walking slowly through heavy falling rain with water droplets splashing off the surface",
+        en_tags: "walking in the rain, falling rain droplets, water splashes, wet surface reflections"
+      },
+      {
+        id: "zero_gravity",
+        label: "🪐 Flotando en gravedad cero",
+        en_natural: "floating weightlessly in zero gravity amidst suspended droplets and debris",
+        en_tags: "floating weightlessly, zero gravity pose, suspended particles"
+      },
+      {
+        id: "meditating",
+        label: "🧘 Meditando",
+        en_natural: "sitting in deep serene lotus meditation surrounded by levitating luminous energy",
+        en_tags: "sitting in lotus meditation, serene posture, levitating luminous energy particles"
+      },
+      {
+        id: "running_speed",
+        label: "⚡ Corriendo a máxima velocidad",
+        en_natural: "sprinting forward at breakneck speed with directional motion blur and wind trails",
+        en_tags: "sprinting at full speed, dynamic running pose, directional motion blur, wind trails"
+      },
+      {
+        id: "editorial_pose",
+        label: "📸 Pose editorial de moda",
+        en_natural: "striking a high-fashion editorial model pose with sculpted posture and confident elegance",
+        en_tags: "high-fashion editorial pose, model posture, confident elegance, magazine aesthetic"
+      },
+      {
+        id: "pedestal_display",
+        label: "🏛️ En exhibición sobre pedestal",
+        en_natural: "displayed prominently atop a sleek monolithic black marble pedestal with subtle water ripples",
+        en_tags: "displayed on sleek black marble pedestal, hero product presentation, water ripples"
+      },
+      {
+        id: "casting_spell",
+        label: "✨ Canalizando energía arcana",
+        en_natural: "channeling swirling filaments of glowing plasma and arcane runes between both hands",
+        en_tags: "channeling glowing plasma energy, arcane runes between hands, magical particle effects"
+      },
+      {
+        id: "over_shoulder",
+        label: "🕶️ Mirada sobre el hombro",
+        en_natural: "glancing back over the shoulder with a mysterious, cinematic profile expression",
+        en_tags: "looking back over shoulder, dramatic profile glance, mysterious expression"
+      }
+    ];
+
+    const ENVIRONMENT_OPTIONS = [
+      {
+        id: "neo_tokyo",
+        label: "🏮 Callejón de Neo-Tokio lluvioso",
+        en_natural: "a rain-slicked Neo-Tokyo cyberpunk alleyway filled with holographic kanji signage and wet asphalt reflections",
+        en_tags: "rain-slicked Neo-Tokyo cyberpunk alleyway, holographic kanji neon signs, wet asphalt mirror reflections, steam vents"
+      },
+      {
+        id: "minimal_studio",
+        label: "🎬 Estudio fotográfico minimalista oscuro",
+        en_natural: "a dark minimalist photography studio with a seamless matte charcoal backdrop and controlled falloff",
+        en_tags: "dark minimalist photography studio, seamless matte charcoal backdrop, studio environment"
+      },
+      {
+        id: "bio_forest",
+        label: "🍄 Bosque encantado bioluminiscente",
+        en_natural: "an ancient enchanted forest illuminated by bioluminescent flora, glowing moss, and drifting mist",
+        en_tags: "enchanted ancient forest, bioluminescent flora, glowing moss, drifting ethereal mist"
+      },
+      {
+        id: "derelict_station",
+        label: "🛰️ Estación espacial abandonada",
+        en_natural: "a derelict orbital space station corridor with flickering emergency lights and panoramic starfield windows",
+        en_tags: "derelict orbital space station corridor, flickering emergency lights, sci-fi bulkhead, starfield window"
+      },
+      {
+        id: "post_apoc_desert",
+        label: "🏜️ Desierto post-apocalíptico",
+        en_natural: "a vast post-apocalyptic desert wasteland with windswept red sand dunes and rusted megastructures on the horizon",
+        en_tags: "vast post-apocalyptic desert wasteland, windswept sand dunes, rusted megastructures, atmospheric dust storm"
+      },
+      {
+        id: "hightech_lab",
+        label: "🧪 Laboratorio de alta tecnología",
+        en_natural: "a sterile futuristic high-tech research laboratory with glass containment pods and floating holographic telemetry",
+        en_tags: "futuristic high-tech research laboratory, glass containment pods, floating holographic interfaces, clean sci-fi interior"
+      },
+      {
+        id: "ruined_temple",
+        label: "⛩️ Templo antiguo en ruinas",
+        en_natural: "an overgrown ancient stone temple in ruins where shafts of sunlight pierce through collapsed monolithic pillars",
+        en_tags: "ancient ruined stone temple, overgrown vines, monolithic carved pillars, shafts of light"
+      },
+      {
+        id: "luxury_interior",
+        label: "🏢 Interior arquitectónico de lujo",
+        en_natural: "an ultra-modern luxury architectural penthouse interior with floor-to-ceiling glass, travertine stone, and warm wood",
+        en_tags: "ultra-modern luxury penthouse interior, architectural digest style, floor-to-ceiling glass, travertine marble"
+      },
+      {
+        id: "gothic_cathedral",
+        label: "🏰 Catedral Gótica Oscura",
+        en_natural: "a towering dark gothic cathedral with stained glass rose windows, vaulted arches, and flickering candlelight",
+        en_tags: "towering dark gothic cathedral, stained glass rose windows, vaulted stone arches, flickering candles"
+      },
+      {
+        id: "cyber_rooftop",
+        label: "🌃 Azotea Futurista con Megaciudad",
+        en_natural: "a high-altitude skyscraper rooftop overlooking a sprawling futuristic megacity with flying traffic streams",
+        en_tags: "high-altitude skyscraper rooftop, sprawling futuristic megacity skyline, flying vehicles light trails"
+      }
+    ];
+
+    // B. Photographic & Cinematic Categories (8 to 10+ options per category)
+    const MEDIUM_OPTIONS = [
+      { id: "raw_photo", label: "Fotografía Hiperrealista RAW", en: "RAW photo, hyperrealistic photography, photorealistic" },
+      { id: "film_still", label: "Fotograma de Película Cinematográfica", en: "cinematic film still, movie frame, theatrical quality" },
+      { id: "commercial_product", label: "Fotografía Comercial de Producto", en: "commercial product photography, studio shot, advertising grade" },
+      { id: "concept_art", label: "Arte Conceptual Sci-Fi / Fantasía", en: "high-end concept art, digital illustration, matte painting" },
+      { id: "modern_anime", label: "Anime Moderno (Estilo Shinkai/Ufotable)", en: "modern anime style, Makoto Shinkai aesthetic, vibrant cel shading" },
+      { id: "octane_3d", label: "Render 3D Octane / Unreal Engine 5", en: "3D render, Unreal Engine 5, Octane Render, ray tracing" },
+      { id: "street_doc", label: "Fotografía Documental Callejera", en: "street photography, candid shot, documentary style" },
+      { id: "dark_editorial", label: "Ilustración Editorial Oscura", en: "dark fantasy illustration, intricate ink and digital paint" },
+      { id: "fashion_vogue", label: "Fotografía Editorial de Alta Moda (Vogue)", en: "high-fashion editorial photography, Vogue cover aesthetic, luxury studio polish" },
+      { id: "oil_masterpiece", label: "Pintura al Óleo Clásica de Museo", en: "classical oil painting on canvas, rich impasto brushwork, fine art masterpiece" }
+    ];
+
+    const SHOT_OPTIONS = [
+      { id: "ecu", label: "Primerísimo Primer Plano (Extreme Close-Up)", en: "extreme close-up shot, macro facial details" },
+      { id: "closeup", label: "Primer Plano de Retrato (Close-Up)", en: "close-up portrait shot" },
+      { id: "medium", label: "Plano Medio (Medium Shot)", en: "medium shot, waist-up framing" },
+      { id: "cowboy", label: "Plano Americano (Cowboy Shot)", en: "cowboy shot, knees-up framing" },
+      { id: "full_body", label: "Plano Entero (Full Body Shot)", en: "full body shot, head to toe visible" },
+      { id: "extreme_wide", label: "Plano General Épico (Extreme Wide Shot)", en: "extreme wide angle shot, establishing environmental shot" },
+      { id: "low_angle", label: "Ángulo Contrapicado (Low Angle)", en: "low angle shot, heroic perspective looking up" },
+      { id: "high_angle", label: "Ángulo Picado (High Angle)", en: "high angle shot, looking down" },
+      { id: "birds_eye", label: "Vista Cenital / De Pájaro (Bird's-Eye View)", en: "bird's-eye view, top-down aerial perspective" },
+      { id: "dutch_angle", label: "Plano Holandés Dinámico (Dutch Angle)", en: "dynamic dutch angle, tilted frame" }
+    ];
+
+    const LIGHTING_OPTIONS = [
+      { id: "volumetric", label: "Luz Volumétrica / Rayos Divinos", en: "volumetric lighting, god rays, crepuscular rays, atmospheric haze" },
+      { id: "rembrandt", label: "Iluminación Rembrandt Dramática", en: "dramatic Rembrandt lighting, chiaroscuro, deep shadows" },
+      { id: "cyber_neon", label: "Neón Cyberpunk (Bicolor Cian/Magenta)", en: "cyberpunk neon lighting, dual tone cyan and magenta rim lights" },
+      { id: "golden_hour", label: "Hora Dorada (Golden Hour)", en: "warm golden hour sunlight, soft long shadows, glowing atmosphere" },
+      { id: "softbox", label: "Iluminación de Estudio Softbox Profesional", en: "professional studio lighting, three-point softbox setup, clean rim light" },
+      { id: "backlight", label: "Contraluz Silueta (Backlighting)", en: "strong backlighting, glowing silhouette, subsurface scattering" },
+      { id: "moonlight", label: "Luz Nocturna Cinematográfica (Moonlight)", en: "cinematic moonlight, moody blue night ambiance" },
+      { id: "bioluminescent", label: "Bioluminiscencia Orgánica", en: "bioluminescent glow, magical ambient particles" },
+      { id: "blue_hour", label: "Hora Azul Melancólica (Blue Hour)", en: "twilight blue hour lighting, cool atmospheric diffusion, soft ambient glow" },
+      { id: "caustics", label: "Refracción Cáustica y Prismática", en: "caustic light refractions, prism rainbow specular highlights, crystal reflections" }
+    ];
+
+    const LENS_OPTIONS = [
+      { id: "85mm", label: "Lente 85mm f/1.4 (Retrato Bokeh Extremo)", en: "shot on 85mm lens, f/1.4 aperture, creamy bokeh, shallow depth of field" },
+      { id: "35mm_anamorphic", label: "Lente 35mm Anamórfico (Cine Panorámico)", en: "shot on 35mm anamorphic lens, horizontal lens flares, cinematic widescreen" },
+      { id: "24mm_wide", label: "Lente 24mm Gran Angular (Paisajes/Arquitectura)", en: "shot on 24mm wide-angle lens, deep depth of field, sharp background" },
+      { id: "100mm_macro", label: "Lente Macro 100mm (Texturas y Detalles)", en: "100mm macro lens, microscopic surface detail, sharp focus" },
+      { id: "arri_alexa", label: "Cámara ARRI Alexa 65 (Cine IMAX)", en: "shot on ARRI Alexa 65, IMAX 70mm film stock, fine film grain" },
+      { id: "kodak_portra", label: "Kodak Portra 400 (Analógico Cálido)", en: "shot on Kodak Portra 400, vintage analog film look, natural skin tones" },
+      { id: "sony_a7rv", label: "Sony A7R V (Nitidez Digital Extrema)", en: "shot on Sony A7R V, crisp digital sensor, ultra-sharp focus" },
+      { id: "hasselblad", label: "Hasselblad H6D-100c (Formato Medio Estudio)", en: "shot on Hasselblad H6D-100c medium format, 16-bit color depth, optical perfection" },
+      { id: "leica_noctilux", label: "Leica Noctilux 50mm f/1.2 (Óptica Legendaria)", en: "shot on Leica Noctilux 50mm f/1.2, natural perspective, buttery focus falloff" },
+      { id: "fujifilm_velvia", label: "Película Fujifilm Velvia 50 (Cromática Intensa)", en: "shot on Fujifilm Velvia 50 slide film, vivid saturated colors, rich micro-contrast" }
+    ];
+
+    const COMPOSITION_OPTIONS = [
+      { id: "rule_thirds", label: "Regla de los Tercios", en: "rule of thirds composition" },
+      { id: "wes_symmetry", label: "Simetría Central Perfecta (Estilo Wes Anderson)", en: "perfect symmetrical composition, centered framing" },
+      { id: "leading_lines", label: "Líneas Guía Dinámicas", en: "leading lines composition, strong visual flow" },
+      { id: "teal_orange", label: "Gradación de Color Teal & Orange (Cine Blockbuster)", en: "teal and orange color grading, cinematic color correction" },
+      { id: "noir_bw", label: "Blanco y Negro de Alto Contraste (Noir)", en: "high contrast black and white, film noir aesthetic" },
+      { id: "muted_pastel", label: "Colores Pastel Desaturados", en: "muted pastel color palette, dreamy tones" },
+      { id: "vibrant_hdr", label: "Colores Vibrantes HDR", en: "vibrant saturated colors, HDR, rich contrast" },
+      { id: "golden_ratio", label: "Espiral Áurea (Proporción Fibonacci)", en: "golden ratio composition, harmonious focal balance" },
+      { id: "bleach_bypass", label: "Gradación Bleach Bypass (Metálico y Crudo)", en: "bleach bypass color grading, gritty metallic contrast, desaturated shadows" },
+      { id: "cyber_emerald", label: "Tono Ciber-Esmeralda Cinematográfico", en: "cinematic emerald and cyan color grading, atmospheric sci-fi color harmony" }
+    ];
+
+    const BOOSTER_OPTIONS = [
+      {
+        id: "masterpiece_8k",
+        label: "Calidad Maestra 8K Hiperdetallada",
+        en: "masterpiece, best quality, 8k resolution, ultra-detailed, realistic skin texture, intricate details"
+      },
+      {
+        id: "skin_pores",
+        label: "Texturas Fotorrealistas y Poros de Piel",
+        en: "hyper-detailed skin pores, subsurface scattering, realistic fabric textures, sharp focus"
+      },
+      {
+        id: "clean_studio",
+        label: "Renderizado Limpio de Estudio",
+        en: "clean sharp render, zero noise, studio grade perfection"
+      },
+      {
+        id: "micro_details",
+        label: "Micro-Detalles y Nitidez Óptica",
+        en: "intricate micro-details, tack-sharp focus, physically based rendering, ultra-high definition"
+      },
+      {
+        id: "ray_tracing_gi",
+        label: "Iluminación Global y Trazado de Rayos",
+        en: "global illumination, path tracing, realistic specular reflections and refractions"
+      },
+      {
+        id: "film_grain_hal",
+        label: "Textura Analógica de Celuloide 35mm",
+        en: "authentic fine 35mm film grain, subtle optical halation, organic lens character"
+      },
+      {
+        id: "anatomy_perf",
+        label: "Perfección Anatómica y Mirada Viva",
+        en: "perfect anatomy, natural proportions, expressive catchlights in eyes, lifelike hands"
+      },
+      {
+        id: "atmo_depth",
+        label: "Profundidad Atmosférica y Partículas",
+        en: "volumetric dust motes, layered foreground and background depth, rich atmospheric perspective"
+      }
+    ];
+
+    // C. Negative Prompt Presets
+    const NEGATIVE_PRESETS = [
+      {
+        id: "anti_deform",
+        label: "🛡️ Estándar Anti-Deformaciones (Universal)",
+        en: "ugly, deformed, disfigured, bad anatomy, mutated hands, extra fingers, missing fingers, fused fingers, extra limbs, poorly drawn face, cloned face, blurry, low quality, worst quality, watermark, text, signature, cropped, out of frame"
+      },
+      {
+        id: "clean_photo",
+        label: "📷 Fotografía Limpia / Hiperrealista (Anti-CGI)",
+        en: "cgi, 3d render, illustration, anime, cartoon, painting, sketch, plastic skin, wax skin, doll-like, airbrushed, oversaturated, overexposed, motion blur, chromatic noise, jpeg artifacts, watermark, text, logo, bad anatomy, deformed hands"
+      },
+      {
+        id: "clean_anime",
+        label: "🎌 Anime / Ilustración Limpia",
+        en: "photorealistic, 3d render, live action, bad anatomy, inconsistent lineart, flat shading, off-model, extra digits, fewer digits, blurry, lowres, compression artifacts, watermark, username, artist name, signature, bad hands, mutated proportions"
+      },
+      {
+        id: "commercial_arch",
+        label: "💎 Producto Comercial y Arquitectura Limpia",
+        en: "cluttered background, asymmetrical geometry, warped perspective, reflections of camera equipment, dust, scratches, smudges, crooked lines, watermark, text overlay, brand typo, low resolution, noisy shadows, harsh unwanted glare"
+      },
+      {
+        id: "flux_minimal",
+        label: "⚡ Flux / Qwen Minimalista (Ligero)",
+        en: "blurry, low quality, distorted anatomy, disfigured hands, watermark, text overlay, signature, compression artifacts"
+      }
+    ];
+
+    // D. 8+ Quick 1-Click Presets
+    const QUICK_PRESETS = [
+      {
+        id: "preset_cyber_lora",
+        icon: "🦾",
+        name: "Retrato Cyberpunk con LoRA",
+        archLabel: "Flux.1 + LoRA",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "ohwx_cyber_v2",
+          triggerPos: "start",
+          triggerWeight: 1.1,
+          forceWeight: true,
+          subjects: ["cyber_warrior", "hyper_woman"],
+          customSubject: "cabello corto plateado, implantes cibernéticos dorados en el rostro",
+          actions: ["staring_camera"],
+          customAction: "sosteniendo una katana de plasma azul",
+          envs: ["neo_tokyo"],
+          customEnv: "lluvia intensa y reflejos de neón en el asfalto",
+          medium: "film_still",
+          shot: "closeup",
+          lighting: "cyber_neon",
+          lens: "35mm_anamorphic",
+          composition: "teal_orange",
+          boosters: ["masterpiece_8k", "skin_pores", "atmo_depth"],
+          negativePreset: "clean_photo"
+        }
+      },
+      {
+        id: "preset_luxury_prod",
+        icon: "💎",
+        name: "Fotografía de Producto Luxury",
+        archLabel: "Flux.1 Comercial",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "",
+          triggerPos: "start",
+          triggerWeight: 1.0,
+          forceWeight: false,
+          subjects: ["luxury_product"],
+          customSubject: "frasco de cristal negro tallado con detalles en oro cepillado y gotas de rocío",
+          actions: ["pedestal_display"],
+          customAction: "salpicaduras de agua cristalina en cámara lenta",
+          envs: ["minimal_studio"],
+          customEnv: "humo sutil y reflejos de espejo en la base",
+          medium: "commercial_product",
+          shot: "closeup",
+          lighting: "softbox",
+          lens: "100mm_macro",
+          composition: "wes_symmetry",
+          boosters: ["masterpiece_8k", "clean_studio", "ray_tracing_gi"],
+          negativePreset: "commercial_arch"
+        }
+      },
+      {
+        id: "preset_epic_anime",
+        icon: "⚔️",
+        name: "Personaje Anime Épico",
+        archLabel: "SDXL / Pony Tags",
+        config: {
+          arch: "sdxl",
+          ponyPrefix: true,
+          triggerWord: "shinkai_cel_v4",
+          triggerPos: "start",
+          triggerWeight: 1.05,
+          forceWeight: true,
+          subjects: ["dark_sorceress"],
+          customSubject: "ojos violetas brillantes, cabello largo al viento",
+          actions: ["casting_spell"],
+          customAction: "partículas de luz flotando alrededor",
+          envs: ["ruined_temple"],
+          customEnv: "cielo estrellado con nubes dramáticas y pétalos de cerezo",
+          medium: "modern_anime",
+          shot: "low_angle",
+          lighting: "volumetric",
+          lens: "35mm_anamorphic",
+          composition: "vibrant_hdr",
+          boosters: ["masterpiece_8k", "anatomy_perf", "atmo_depth"],
+          negativePreset: "clean_anime"
+        }
+      },
+      {
+        id: "preset_editorial_85",
+        icon: "📸",
+        name: "Fotografía Editorial 85mm",
+        archLabel: "Flux.1 RAW",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "ohwx woman",
+          triggerPos: "subject",
+          triggerWeight: 1.0,
+          forceWeight: false,
+          subjects: ["hyper_woman"],
+          customSubject: "vestido de alta costura de seda negra, pecas naturales, mirada elegante",
+          actions: ["editorial_pose"],
+          customAction: "",
+          envs: ["luxury_interior"],
+          customEnv: "luz cálida entrando por grandes ventanales",
+          medium: "raw_photo",
+          shot: "medium",
+          lighting: "golden_hour",
+          lens: "85mm",
+          composition: "rule_thirds",
+          boosters: ["masterpiece_8k", "skin_pores", "anatomy_perf"],
+          negativePreset: "clean_photo"
+        }
+      },
+      {
+        id: "preset_futuristic_arch",
+        icon: "🏙️",
+        name: "Arquitectura Futurista",
+        archLabel: "Flux.1 Gran Angular",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "parametric_arch_lora",
+          triggerPos: "start",
+          triggerWeight: 0.9,
+          forceWeight: true,
+          subjects: ["futuristic_car"],
+          customSubject: "edificio paramétrico blanco de curvas orgánicas y cristal",
+          actions: ["pedestal_display"],
+          customAction: "",
+          envs: ["luxury_interior"],
+          customEnv: "jardines verticales bioluminiscentes y espejos de agua",
+          medium: "octane_3d",
+          shot: "extreme_wide",
+          lighting: "golden_hour",
+          lens: "24mm_wide",
+          composition: "leading_lines",
+          boosters: ["masterpiece_8k", "clean_studio", "ray_tracing_gi"],
+          negativePreset: "commercial_arch"
+        }
+      },
+      {
+        id: "preset_dark_fantasy",
+        icon: "🐉",
+        name: "Criatura Dark Fantasy",
+        archLabel: "SDXL Concept Art",
+        config: {
+          arch: "sdxl",
+          ponyPrefix: false,
+          triggerWord: "eldritch_souls_style",
+          triggerPos: "start",
+          triggerWeight: 1.15,
+          forceWeight: true,
+          subjects: ["mythic_creature"],
+          customSubject: "alas desgarradas, escamas de obsidiana y fuego azul en el pecho",
+          actions: ["combat_stance"],
+          customAction: "rugiendo hacia el cielo",
+          envs: ["gothic_cathedral"],
+          customEnv: "niebla espesa y cenizas cayendo",
+          medium: "dark_editorial",
+          shot: "low_angle",
+          lighting: "rembrandt",
+          lens: "24mm_wide",
+          composition: "bleach_bypass",
+          boosters: ["masterpiece_8k", "micro_details", "atmo_depth"],
+          negativePreset: "anti_deform"
+        }
+      },
+      {
+        id: "preset_scifi_cinema",
+        icon: "👩‍🚀",
+        name: "Escena Sci-Fi Cinematográfica",
+        archLabel: "Flux.1 IMAX 70mm",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "",
+          triggerPos: "start",
+          triggerWeight: 1.0,
+          forceWeight: false,
+          subjects: ["lone_astronaut"],
+          customSubject: "casco con reflejos de una nebulosa naranja y polvo cósmico",
+          actions: ["zero_gravity"],
+          customAction: "extendiendo la mano hacia un monolito alienígena cristalino",
+          envs: ["derelict_station"],
+          customEnv: "partículas flotando en el vacío",
+          medium: "film_still",
+          shot: "cowboy",
+          lighting: "volumetric",
+          lens: "arri_alexa",
+          composition: "teal_orange",
+          boosters: ["masterpiece_8k", "film_grain_hal", "atmo_depth"],
+          negativePreset: "clean_photo"
+        }
+      },
+      {
+        id: "preset_extreme_macro",
+        icon: "🔬",
+        name: "Macro Fotografía Extrema",
+        archLabel: "Flux.1 100mm Macro",
+        config: {
+          arch: "flux",
+          ponyPrefix: false,
+          triggerWord: "",
+          triggerPos: "start",
+          triggerWeight: 1.0,
+          forceWeight: false,
+          subjects: ["humanoid_robot"],
+          customSubject: "ojo biomecánico con iris de cristal líquido dorado y microcircuitos",
+          actions: ["staring_camera"],
+          customAction: "gotas microscópicas de agua sobre las pestañas metálicas",
+          envs: ["bio_forest"],
+          customEnv: "polen brillante en suspensión",
+          medium: "raw_photo",
+          shot: "ecu",
+          lighting: "bioluminescent",
+          lens: "100mm_macro",
+          composition: "golden_ratio",
+          boosters: ["masterpiece_8k", "micro_details", "skin_pores"],
+          negativePreset: "clean_photo"
+        }
+      }
+    ];
+
+    // E. Extensive Local Spanish -> English Phrase & Word Dictionary (Sorted longest-first at runtime)
+    const SPANISH_TO_ENGLISH_DICTIONARY = [
+      // Multi-word phrases & expressions
+      ["cabello corto plateado", "short silver hair"],
+      ["cabello largo plateado", "long silver hair"],
+      ["cabello largo al viento", "long windblown hair"],
+      ["cabello plateado", "silver hair"],
+      ["cabello blanco", "white hair"],
+      ["cabello negro", "jet-black hair"],
+      ["cabello rubio", "blonde hair"],
+      ["cabello pelirrojo", "fiery red hair"],
+      ["cabello castaño", "chestnut brown hair"],
+      ["cabello rizado", "curly hair"],
+      ["cabello ondulado", "wavy hair"],
+      ["cabello mojado", "wet hair strands"],
+      ["pelo plateado", "silver hair"],
+      ["pelo blanco", "white hair"],
+      ["pelo negro", "black hair"],
+      ["pelo largo", "long hair"],
+      ["pelo corto", "short hair"],
+      ["ojos azules brillantes", "glowing blue eyes"],
+      ["ojos violetas brillantes", "glowing violet eyes"],
+      ["ojos rojos brillantes", "glowing red eyes"],
+      ["ojos dorados", "golden amber eyes"],
+      ["ojos verdes", "emerald green eyes"],
+      ["ojos azules", "piercing blue eyes"],
+      ["ojos brillantes", "glowing luminescent eyes"],
+      ["mirada elegante", "elegant poised gaze"],
+      ["mirada intensa", "intense piercing gaze"],
+      ["sonrisa misteriosa", "mysterious subtle smile"],
+      ["pecas naturales", "natural skin freckles"],
+      ["piel de porcelana", "flawless porcelain skin"],
+      ["piel bronceada", "sun-kissed tanned skin"],
+      ["piel húmeda", "dewy wet skin texture"],
+      ["cicatriz luminosa", "glowing cybernetic facial scar"],
+      ["cicatriz en el rostro", "weathered facial scar"],
+      ["implantes cibernéticos dorados en el rostro", "gold-plated cybernetic facial implants"],
+      ["implantes cibernéticos", "cybernetic neural implants"],
+      ["chaqueta de cuero negro", "black distressed leather jacket"],
+      ["chaqueta de cuero", "leather jacket"],
+      ["vestido de alta costura de seda negra", "haute couture black silk gown"],
+      ["vestido de seda", "flowing silk dress"],
+      ["vestido rojo", "crimson evening dress"],
+      ["vestido negro", "elegant black dress"],
+      ["traje espacial", "advanced pressurized spacesuit"],
+      ["traje elegante", "tailored luxury suit"],
+      ["armadura dorada", "ornate gilded golden armor"],
+      ["armadura negra", "matte obsidian tactical armor"],
+      ["armadura pesada", "heavy battle-worn plate armor"],
+      ["armadura futurista", "sleek futuristic exosuit armor"],
+      ["capa ondeando al viento", "flowing cape billowing in the wind"],
+      ["sosteniendo una katana de plasma azul", "wielding a glowing blue plasma katana"],
+      ["sosteniendo una katana láser", "wielding a glowing laser katana"],
+      ["sosteniendo una espada", "wielding a finely forged sword"],
+      ["katana de plasma", "glowing plasma katana"],
+      ["espada brillante", "glowing runic blade"],
+      ["cámara lenta", "high-speed slow motion capture"],
+      ["salpicaduras de agua cristalina", "crystalline water splashes"],
+      ["salpicaduras de agua", "dynamic water splashes"],
+      ["gotas de rocío", "microscopic morning dewdrops"],
+      ["gotas microscópicas de agua", "microscopic water droplets"],
+      ["gotas de agua", "water droplets"],
+      ["lluvia intensa", "heavy pouring rain"],
+      ["bajo la lluvia", "in the falling rain"],
+      ["charcos de agua", "reflective water puddles"],
+      ["reflejos de neón en el asfalto", "vibrant neon reflections on wet asphalt"],
+      ["reflejos de neón", "neon specular reflections"],
+      ["reflejos de espejo en la base", "mirror-like surface reflections on the base"],
+      ["reflejos de espejo", "mirror reflections"],
+      ["humo sutil", "wisps of atmospheric smoke"],
+      ["niebla densa", "dense volumetric fog"],
+      ["niebla espesa", "thick rolling mist"],
+      ["hologramas flotantes", "floating translucent holograms"],
+      ["partículas de luz flotando alrededor", "floating luminous light particles swirling around"],
+      ["partículas flotando en el vacío", "suspended zero-gravity particles floating in the void"],
+      ["partículas de luz", "glowing light particles"],
+      ["polvo cósmico", "iridescent cosmic stardust"],
+      ["polen brillante en suspensión", "glowing suspended pollen motes"],
+      ["cielo estrellado", "starry night sky cosmos"],
+      ["nubes dramáticas", "dramatic storm clouds"],
+      ["pétalos de cerezo", "falling cherry blossom petals"],
+      ["cenizas cayendo", "falling glowing embers and ash"],
+      ["fuego azul en el pecho", "glowing blue plasma fire in the chest core"],
+      ["fuego azul", "blue arcane flames"],
+      ["alas desgarradas", "tattered dragon wings"],
+      ["alas de ángel", "majestic feathered angel wings"],
+      ["escamas de obsidiana", "jagged obsidian scales"],
+      ["rugiendo hacia el cielo", "roaring fiercely toward the sky"],
+      ["extendiendo la mano hacia", "reaching out a hand toward"],
+      ["monolito alienígena cristalino", "crystalline alien monolith"],
+      ["ojo biomecánico", "biomechanical cybernetic eye"],
+      ["iris de cristal líquido dorado", "liquid gold crystal iris"],
+      ["pestañas metálicas", "delicate metallic eyelashes"],
+      ["frasco de cristal negro tallado", "faceted black crystal flacon bottle"],
+      ["oro cepillado", "brushed 24k gold"],
+      ["grandes ventanales", "expansive floor-to-ceiling windows"],
+      ["luz cálida entrando por", "warm sunlight streaming through"],
+      ["edificio paramétrico blanco", "white parametric futuristic building"],
+      ["curvas orgánicas y cristal", "organic sweeping curves and curved glass facades"],
+      ["jardines verticales bioluminiscentes", "bioluminescent vertical hanging gardens"],
+      ["espejos de agua", "tranquil architectural reflecting pools"],
+
+      // Single words & common connectors
+      ["hombre", "man"],
+      ["mujer", "woman"],
+      ["chica", "young woman"],
+      ["joven", "young"],
+      ["anciano", "elderly man"],
+      ["guerrero", "warrior"],
+      ["guerrera", "female warrior"],
+      ["samurái", "samurai"],
+      ["samurai", "samurai"],
+      ["ciborg", "cyborg"],
+      ["androide", "android"],
+      ["robot", "robot"],
+      ["astronauta", "astronaut"],
+      ["detective", "noir detective"],
+      ["mago", "wizard"],
+      ["hechicera", "sorceress"],
+      ["dragón", "dragon"],
+      ["dragon", "dragon"],
+      ["lobo", "wolf"],
+      ["león", "lion"],
+      ["gato", "cat"],
+      ["ciudad", "city"],
+      ["bosque", "forest"],
+      ["desierto", "desert"],
+      ["montaña", "mountain"],
+      ["montañas", "mountains"],
+      ["océano", "ocean"],
+      ["mar", "sea"],
+      ["playa", "beach"],
+      ["templo", "temple"],
+      ["castillo", "castle"],
+      ["ruinas", "ancient ruins"],
+      ["calle", "street"],
+      ["callejón", "alleyway"],
+      ["espacio", "deep space"],
+      ["nebulosa", "nebula"],
+      ["planeta", "planet"],
+      ["lluvia", "rain"],
+      ["nieve", "falling snow"],
+      ["niebla", "fog"],
+      ["humo", "smoke"],
+      ["fuego", "fire"],
+      ["llamas", "flames"],
+      ["agua", "water"],
+      ["hielo", "ice"],
+      ["cristal", "crystal"],
+      ["vidrio", "glass"],
+      ["oro", "gold"],
+      ["dorado", "golden"],
+      ["dorada", "golden"],
+      ["plata", "silver"],
+      ["plateado", "silver"],
+      ["plateada", "silver"],
+      ["bronce", "bronze"],
+      ["cobre", "copper"],
+      ["acero", "steel"],
+      ["metal", "metal"],
+      ["metálico", "metallic"],
+      ["metálica", "metallic"],
+      ["cuero", "leather"],
+      ["seda", "silk"],
+      ["terciopelo", "velvet"],
+      ["mármol", "marble"],
+      ["piedra", "stone"],
+      ["madera", "wood"],
+      ["neón", "neon"],
+      ["neon", "neon"],
+      ["holograma", "hologram"],
+      ["láser", "laser"],
+      ["brillante", "glowing"],
+      ["brillantes", "glowing"],
+      ["luminoso", "luminous"],
+      ["luminosa", "luminous"],
+      ["oscuro", "dark"],
+      ["oscura", "dark"],
+      ["rojo", "red"],
+      ["roja", "red"],
+      ["azul", "blue"],
+      ["verde", "green"],
+      ["amarillo", "yellow"],
+      ["blanco", "white"],
+      ["blanca", "white"],
+      ["negro", "black"],
+      ["negra", "black"],
+      ["violeta", "violet"],
+      ["púrpura", "purple"],
+      ["rosa", "pink"],
+      ["naranja", "orange"],
+      ["turquesa", "turquoise"],
+      ["cian", "cyan"],
+      ["mirando", "looking"],
+      ["caminando", "walking"],
+      ["corriendo", "running"],
+      ["volando", "flying"],
+      ["flotando", "floating"],
+      ["sentado", "sitting"],
+      ["sentada", "sitting"],
+      ["espada", "sword"],
+      ["armadura", "armor"],
+      ["casco", "helmet"],
+      ["máscara", "mask"],
+      ["corona", "crown"],
+      ["capa", "cloak"],
+      ["alas", "wings"],
+      ["ojos", "eyes"],
+      ["rostro", "face"],
+      ["manos", "hands"],
+      ["piel", "skin"],
+      ["luz", "light"],
+      ["sombras", "shadows"],
+      ["reflejos", "reflections"],
+      ["microcircuitos", "intricate microcircuits"],
+      ["cibernético", "cybernetic"],
+      ["cibernética", "cybernetic"],
+      ["futurista", "futuristic"],
+      ["antiguo", "ancient"],
+      ["antigua", "ancient"],
+      ["mágico", "magical"],
+      ["mágica", "magical"],
+      ["épico", "epic"],
+      ["épica", "epic"],
+      ["hiperrealista", "hyperrealistic"],
+      ["detallado", "highly detailed"],
+      ["detallada", "highly detailed"],
+      ["con", "with"],
+      ["sin", "without"],
+      ["sobre", "on"],
+      ["entre", "between"],
+      ["bajo", "under"],
+      ["hacia", "toward"],
+      ["alrededor", "around"],
+      ["y", "and"],
+      ["en", "in"],
+      ["de", "of"],
+      ["del", "of the"],
+      ["la", "the"],
+      ["el", "the"],
+      ["los", "the"],
+      ["las", "the"],
+      ["un", "a"],
+      ["una", "a"]
+    ].sort((a, b) => b[0].length - a[0].length);
+
+    /*************************************************************************
+     * 2. APPLICATION STATE & STORAGE
+     *************************************************************************/
+    const STORAGE_KEY_HISTORY = "comfyui_prompt_studio_pro_history_v1";
+
+    const DEFAULT_STATE = {
+      arch: "flux",                // 'flux' | 'sdxl'
+      ponyPrefix: false,           // boolean
+      triggerWord: "",             // string
+      triggerPos: "start",         // 'start' | 'subject'
+      triggerWeight: 1.0,          // 0.1 to 1.5
+      forceWeight: false,          // boolean
+      subjects: ["cyber_warrior"], // array of subject IDs
+      customSubject: "",           // free text (auto-translated ES->EN)
+      actions: ["staring_camera"], // array of action IDs
+      customAction: "",            // free text
+      envs: ["neo_tokyo"],         // array of env IDs
+      customEnv: "",               // free text
+      medium: "raw_photo",
+      shot: "closeup",
+      lighting: "cyber_neon",
+      lens: "85mm",
+      composition: "teal_orange",
+      boosters: ["masterpiece_8k", "skin_pores"],
+      negativePreset: "anti_deform",
+      activePresetId: null
+    };
+
+    let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    let promptHistory = [];
+
+    /*************************************************************************
+     * 3. TRANSLATION & PROMPT GENERATION ENGINE
+     *************************************************************************/
+
+    function escapeRegExp(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    /**
+     * Translates Spanish free-text input into technical English while preserving
+     * English tokens, numbers, and LoRA tags (<lora:...>).
+     */
+    function translateSpanishToEnglish(rawText) {
+      if (!rawText || !rawText.trim()) return "";
+      let text = rawText.trim();
+
+      // Protect <lora:...> tags from translation
+      const protectedTags = [];
+      text = text.replace(/<[^>]+>/g, (match) => {
+        protectedTags.push(match);
+        return `__LORA_TAG_${protectedTags.length - 1}__`;
+      });
+
+      // Replace multi-word phrases and single words using placeholder tokens to prevent double-translation
+      const translatedTokens = [];
+      for (const [esTerm, enTerm] of SPANISH_TO_ENGLISH_DICTIONARY) {
+        const pattern = new RegExp(`(^|[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9_])(${escapeRegExp(esTerm)})(?=$|[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ0-9_])`, "gi");
+        text = text.replace(pattern, (fullMatch, prefix) => {
+          translatedTokens.push(enTerm);
+          return `${prefix}__TR_${translatedTokens.length - 1}__`;
+        });
+      }
+
+      // Restore translated English tokens
+      text = text.replace(/__TR_(\d+)__/g, (_, idx) => translatedTokens[Number(idx)] || "");
+
+      // Restore protected LoRA tags
+      text = text.replace(/__LORA_TAG_(\d+)__/g, (_, idx) => protectedTags[Number(idx)] || "");
+
+      // Clean up duplicate spaces
+      return text.replace(/\s{2,}/g, " ").trim();
+    }
+
+    /**
+     * Formats the Trigger Word with optional weight syntax `(trigger:1.1)`
+     * while keeping `<lora:name:weight>` tags intact outside parentheses if present.
+     */
+    function formatTriggerWordToken() {
+      const raw = state.triggerWord.trim();
+      if (!raw) return "";
+
+      const weight = Number(state.triggerWeight);
+      const shouldWrap = state.forceWeight || Math.abs(weight - 1.0) > 0.001;
+
+      if (!shouldWrap) {
+        return raw;
+      }
+
+      // If the user included a <lora:...> tag alongside a trigger word, only wrap the non-<lora> part
+      const loraRegex = /<lora:[^>]+>/gi;
+      const loraMatches = raw.match(loraRegex) || [];
+      const textWithoutLora = raw.replace(loraRegex, "").replace(/^[\s,]+|[\s,]+$/g, "");
+
+      if (!textWithoutLora && loraMatches.length > 0) {
+        return loraMatches.join(" ");
+      }
+
+      const wrappedTrigger = `(${textWithoutLora}:${weight.toFixed(2).replace(/\.00$/, ".0").replace(/(\.\d)0$/, "$1")})`;
+      return loraMatches.length > 0 ? `${ loraMatches.join(" ") } ${wrappedTrigger}` : wrappedTrigger;
+    }
+
+    function getOptionById(list, id) {
+      return list.find((item) => item.id === id) || list[0];
+    }
+
+    /**
+     * Builds both the raw plain-text English Positive Prompt and an HTML-highlighted version
+     */
+    function buildPositivePrompt() {
+      const triggerFormatted = formatTriggerWordToken();
+      const mediumObj = getOptionById(MEDIUM_OPTIONS, state.medium);
+      const shotObj = getOptionById(SHOT_OPTIONS, state.shot);
+      const lightingObj = getOptionById(LIGHTING_OPTIONS, state.lighting);
+      const lensObj = getOptionById(LENS_OPTIONS, state.lens);
+      const compObj = getOptionById(COMPOSITION_OPTIONS, state.composition);
+
+      const selectedSubjects = state.subjects
+        .map((id) => SUBJECT_OPTIONS.find((s) => s.id === id))
+        .filter(Boolean);
+      const selectedActions = state.actions
+        .map((id) => ACTION_OPTIONS.find((a) => a.id === id))
+        .filter(Boolean);
+      const selectedEnvs = state.envs
+        .map((id) => ENVIRONMENT_OPTIONS.find((e) => e.id === id))
+        .filter(Boolean);
+      const selectedBoosters = state.boosters
+        .map((id) => BOOSTER_OPTIONS.find((b) => b.id === id))
+        .filter(Boolean);
+
+      const translatedSubjectCustom = translateSpanishToEnglish(state.customSubject);
+      const translatedActionCustom = translateSpanishToEnglish(state.customAction);
+      const translatedEnvCustom = translateSpanishToEnglish(state.customEnv);
+
+      const TRIGGER_TOKEN_MARKER = "___TRIGGER_MARKER___";
+      const PONY_TOKEN_MARKER = "___PONY_MARKER___";
+
+      let rawPrompt = "";
+      let markedPrompt = "";
+
+      if (state.arch === "flux") {
+        // NATURAL LANGUAGE MODE (Flux.1 / Qwen Image)
+        const subjectPhrases = selectedSubjects.map((s) => s.en_natural);
+        if (translatedSubjectCustom) {
+          subjectPhrases.push(`featuring ${translatedSubjectCustom}`);
+        }
+        let subjectClause = subjectPhrases.length > 0
+          ? subjectPhrases.join(", combined with ")
+          : "a compelling central subject";
+
+        if (triggerFormatted && state.triggerPos === "subject") {
+          subjectClause = `${TRIGGER_TOKEN_MARKER}, ${subjectClause}`;
+        }
+
+        const actionPhrases = selectedActions.map((a) => a.en_natural);
+        if (translatedActionCustom) {
+          actionPhrases.push(translatedActionCustom);
+        }
+        const actionClause = actionPhrases.length > 0
+          ? `, ${actionPhrases.join(", ")}`
+          : "";
+
+        const envPhrases = selectedEnvs.map((e) => e.en_natural);
+        if (translatedEnvCustom) {
+          envPhrases.push(`with ${translatedEnvCustom}`);
+        }
+        const envClause = envPhrases.length > 0
+          ? `, set within ${envPhrases.join(" and ")}`
+          : "";
+
+        const boosterClause = selectedBoosters.length > 0
+          ? ` Rendered with ${selectedBoosters.map((b) => b.en).join(", ")}.`
+          : "";
+
+        const leadPrefix = (triggerFormatted && state.triggerPos === "start")
+          ? `${TRIGGER_TOKEN_MARKER}, `
+          : "";
+
+        const naturalLens = lensObj.en.replace(/^shot on\s+/i, "");
+
+        markedPrompt =
+          `${leadPrefix}A ${mediumObj.en} framed in a ${shotObj.en}, depicting ${subjectClause}${actionClause}${envClause}. ` +
+          `The scene is illuminated by ${lightingObj.en}, captured with ${naturalLens}, following a ${compObj.en}.${boosterClause}`;
+      } else {
+        // TAG-BASED MODE (SDXL / Pony Diffusion)
+        const tags = [];
+
+        if (state.ponyPrefix) {
+          tags.push(PONY_TOKEN_MARKER);
+        }
+
+        if (triggerFormatted && state.triggerPos === "start") {
+          tags.push(TRIGGER_TOKEN_MARKER);
+        }
+
+        tags.push(mediumObj.en);
+        tags.push(shotObj.en);
+
+        if (triggerFormatted && state.triggerPos === "subject") {
+          tags.push(TRIGGER_TOKEN_MARKER);
+        }
+
+        selectedSubjects.forEach((s) => tags.push(s.en_tags));
+        if (translatedSubjectCustom) tags.push(translatedSubjectCustom);
+
+        selectedActions.forEach((a) => tags.push(a.en_tags));
+        if (translatedActionCustom) tags.push(translatedActionCustom);
+
+        selectedEnvs.forEach((e) => tags.push(e.en_tags));
+        if (translatedEnvCustom) tags.push(translatedEnvCustom);
+
+        tags.push(lightingObj.en);
+        tags.push(lensObj.en);
+        tags.push(compObj.en);
+
+        selectedBoosters.forEach((b) => tags.push(b.en));
+
+        markedPrompt = tags.filter(Boolean).join(", ");
+      }
+
+      const ponyString = "score_9, score_8_up, score_7_up, score_6_up, source_real";
+
+      rawPrompt = markedPrompt
+        .replace(TRIGGER_TOKEN_MARKER, triggerFormatted)
+        .replace(PONY_TOKEN_MARKER, ponyString)
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+      const escapeHtml = (str) =>
+        str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+      let htmlPrompt = escapeHtml(markedPrompt);
+      if (triggerFormatted) {
+        htmlPrompt = htmlPrompt.replace(
+          TRIGGER_TOKEN_MARKER,
+          `<span class="trigger-highlight" title="Trigger Word (LoRA) Activo">${escapeHtml(triggerFormatted)}</span>`
+        );
+      }
+      if (state.ponyPrefix) {
+        htmlPrompt = htmlPrompt.replace(
+          PONY_TOKEN_MARKER,
+          `<span class="pony-highlight" title="Prefijo de calidad Pony Diffusion V6">${escapeHtml(ponyString)}</span>`
+        );
+      }
+
+      return {
+        raw: rawPrompt,
+        html: htmlPrompt,
+        translatedSubjectCustom,
+        translatedActionCustom,
+        translatedEnvCustom,
+        triggerFormatted
+      };
+    }
+
+    /*************************************************************************
+     * 4. UI RENDERING & BINDINGS
+     *************************************************************************/
+
+    function showToast(message, variant = "cyan") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `toast ${variant === "orange" ? "orange" : ""}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(8px)";
+        toast.style.transition = "all 180ms ease";
+        setTimeout(() => toast.remove(), 200);
+      }, 2600);
+    }
+
+    function populateSelect(selectId, options) {
+      const selectEl = document.getElementById(selectId);
+      selectEl.innerHTML = "";
+      options.forEach((opt) => {
+        const optionEl = document.createElement("option");
+        optionEl.value = opt.id;
+        optionEl.textContent = opt.label;
+        selectEl.appendChild(optionEl);
+      });
+    }
+
+    function renderPresetsBar() {
+      const grid = document.getElementById("presetsGrid");
+      grid.innerHTML = "";
+      QUICK_PRESETS.forEach((preset) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `preset-btn ${state.activePresetId === preset.id ? "active" : ""}`;
+        btn.innerHTML = `
+          <span class="preset-icon">${preset.icon}</span>
+          <span class="preset-meta">
+            <span class="preset-name">${preset.name}</span>
+            <span class="preset-arch">${preset.archLabel}</span>
+          </span>
+        `;
+        btn.addEventListener("click", () => applyQuickPreset(preset));
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderChipGroup(containerId, options, stateKey) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      options.forEach((opt) => {
+        const isActive = state[stateKey].includes(opt.id);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `chip-btn ${isActive ? "active" : ""}`;
+        btn.textContent = opt.label;
+        btn.addEventListener("click", () => {
+          state.activePresetId = null;
+          const idx = state[stateKey].indexOf(opt.id);
+          if (idx >= 0) {
+            state[stateKey].splice(idx, 1);
+          } else {
+            state[stateKey].push(opt.id);
+          }
+          syncUIFromState();
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function renderBoostersGrid() {
+      const grid = document.getElementById("boostersGrid");
+      grid.innerHTML = "";
+      BOOSTER_OPTIONS.forEach((booster) => {
+        const isActive = state.boosters.includes(booster.id);
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = `booster-card ${isActive ? "active" : ""}`;
+        card.innerHTML = `
+          <span class="booster-check">✓</span>
+          <span class="booster-info">
+            <span class="booster-title">${booster.label}</span>
+            <span class="booster-tokens">${booster.en}</span>
+          </span>
+        `;
+        card.addEventListener("click", () => {
+          state.activePresetId = null;
+          const idx = state.boosters.indexOf(booster.id);
+          if (idx >= 0) {
+            state.boosters.splice(idx, 1);
+          } else {
+            state.boosters.push(booster.id);
+          }
+          syncUIFromState();
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderKSamplerRecommendations() {
+      const tagEl = document.getElementById("ksamplerArchTag");
+      const badgesEl = document.getElementById("ksamplerBadges");
+
+      if (state.arch === "flux") {
+        tagEl.textContent = "FLUX.1 DEV / QWEN IMAGE";
+        badgesEl.innerHTML = `
+          <span class="ks-badge">Steps: <strong>24–28</strong></span>
+          <span class="ks-badge">CFG / Guidance: <strong>1.0 (FluxGuidance 3.5)</strong></span>
+          <span class="ks-badge">Sampler: <strong>euler</strong></span>
+          <span class="ks-badge">Scheduler: <strong>simple / beta</strong></span>
+          <span class="ks-badge">Res: <strong>1024×1024 / 896×1152</strong></span>
+        `;
+      } else {
+        tagEl.textContent = state.ponyPrefix ? "PONY DIFFUSION V6 XL" : "SDXL 1.0 + LORA";
+        badgesEl.innerHTML = `
+          <span class="ks-badge">Steps: <strong>28–35</strong></span>
+          <span class="ks-badge">CFG: <strong>5.5–7.0</strong></span>
+          <span class="ks-badge">Sampler: <strong>dpmpp_2m_sde</strong></span>
+          <span class="ks-badge">Scheduler: <strong>karras</strong></span>
+          <span class="ks-badge">Clip Skip: <strong>${state.ponyPrefix ? "-2" : "-1"}</strong></span>
+        `;
+      }
+    }
+
+    function syncUIFromState() {
+      // Presets bar
+      renderPresetsBar();
+
+      // Architecture toggle
+      document.getElementById("archFluxBtn").classList.toggle("active", state.arch === "flux");
+      document.getElementById("archSdxlBtn").classList.toggle("active", state.arch === "sdxl");
+      document.getElementById("ponyPrefixWrap").style.display = state.arch === "sdxl" ? "inline-flex" : "none";
+      document.getElementById("ponyPrefixToggle").checked = Boolean(state.ponyPrefix);
+      document.getElementById("archModeHint").textContent =
+        state.arch === "flux"
+          ? "Lenguaje natural fluido para modelos con T5/LLM (Flux.1, Qwen Image)"
+          : "Estructura basada en tokens separados por comas y pesos (SDXL, Pony)";
+      document.getElementById("activeArchLabel").textContent =
+        state.arch === "flux" ? "Flux.1 / Qwen Natural" : (state.ponyPrefix ? "Pony V6 Tags" : "SDXL Tags");
+
+      // LoRA controls
+      const triggerInput = document.getElementById("triggerWordInput");
+      if (document.activeElement !== triggerInput) {
+        triggerInput.value = state.triggerWord;
+      }
+      document.getElementById("posStartBtn").classList.toggle("active", state.triggerPos === "start");
+      document.getElementById("posSubjectBtn").classList.toggle("active", state.triggerPos === "subject");
+      document.getElementById("loraWeightSlider").value = state.triggerWeight;
+      document.getElementById("loraWeightBadge").textContent = Number(state.triggerWeight).toFixed(2).replace(/\.00$/, ".0").replace(/(\.\d)0$/, "$1");
+      document.getElementById("forceWeightSyntax").checked = Boolean(state.forceWeight);
+
+      // Scene chips & custom inputs
+      renderChipGroup("subjectChips", SUBJECT_OPTIONS, "subjects");
+      renderChipGroup("actionChips", ACTION_OPTIONS, "actions");
+      renderChipGroup("envChips", ENVIRONMENT_OPTIONS, "envs");
+
+      const customSubjectEl = document.getElementById("customSubjectInput");
+      if (document.activeElement !== customSubjectEl) customSubjectEl.value = state.customSubject;
+      const customActionEl = document.getElementById("customActionInput");
+      if (document.activeElement !== customActionEl) customActionEl.value = state.customAction;
+      const customEnvEl = document.getElementById("customEnvInput");
+      if (document.activeElement !== customEnvEl) customEnvEl.value = state.customEnv;
+
+      // Photographic selects & token previews
+      document.getElementById("selectMedium").value = state.medium;
+      document.getElementById("previewMedium").textContent = getOptionById(MEDIUM_OPTIONS, state.medium).en;
+
+      document.getElementById("selectShot").value = state.shot;
+      document.getElementById("previewShot").textContent = getOptionById(SHOT_OPTIONS, state.shot).en;
+
+      document.getElementById("selectLighting").value = state.lighting;
+      document.getElementById("previewLighting").textContent = getOptionById(LIGHTING_OPTIONS, state.lighting).en;
+
+      document.getElementById("selectLens").value = state.lens;
+      document.getElementById("previewLens").textContent = getOptionById(LENS_OPTIONS, state.lens).en;
+
+      document.getElementById("selectComposition").value = state.composition;
+      document.getElementById("previewComposition").textContent = getOptionById(COMPOSITION_OPTIONS, state.composition).en;
+
+      // Boosters
+      renderBoostersGrid();
+
+      // Build Positive Prompt
+      const built = buildPositivePrompt();
+      document.getElementById("positivePromptDisplay").innerHTML = built.html;
+
+      // Update live ES->EN translation previews
+      document.getElementById("subjectTranslationPreview").textContent =
+        built.translatedSubjectCustom ? `EN: "${built.translatedSubjectCustom}"` : "Sin detalles personalizados adicionales";
+      document.getElementById("actionTranslationPreview").textContent =
+        built.translatedActionCustom ? `EN: "${built.translatedActionCustom}"` : "Sin acción personalizada adicional";
+      document.getElementById("envTranslationPreview").textContent =
+        built.translatedEnvCustom ? `EN: "${built.translatedEnvCustom}"` : "Sin entorno personalizado adicional";
+
+      // Trigger status label
+      document.getElementById("triggerStatusLabel").textContent = built.triggerFormatted
+        ? `🎯 LoRA Activo: ${built.triggerFormatted}`
+        : "Sin Trigger Word";
+
+      // Word & approximate CLIP/T5 token counter
+      const words = built.raw.split(/\s+/).filter(Boolean).length;
+      const approxTokens = Math.round(words * 1.32);
+      document.getElementById("tokenCounterBadge").textContent = `${words} palabras · ~${approxTokens} tokens`;
+
+      // KSampler recommendations
+      renderKSamplerRecommendations();
+    }
+
+    function applyNegativePreset(presetId) {
+      state.negativePreset = presetId;
+      const presetObj = getOptionById(NEGATIVE_PRESETS, presetId);
+      document.getElementById("selectNegativePreset").value = presetObj.id;
+      document.getElementById("negativePromptTextarea").value = presetObj.en;
+    }
+
+    function applyQuickPreset(preset) {
+      state = JSON.parse(JSON.stringify(preset.config));
+      state.activePresetId = preset.id;
+      applyNegativePreset(state.negativePreset);
+      syncUIFromState();
+      saveCurrentPromptToHistory(false);
+      showToast(`⚡ Preset cargado: ${preset.name}`, "cyan");
+    }
+
+    /*************************************************************************
+     * 5. INTERACTIVE ACTIONS (COPY, RANDOMIZE, CLEAR, EXPORT, HISTORY)
+     *************************************************************************/
+
+    async function copyTextToClipboard(text, btnElement, labelElement, defaultLabel, toastMsg, toastVariant = "cyan") {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          temp.remove();
+        }
+        btnElement.classList.add("copied");
+        labelElement.textContent = "¡Copiado! ✅";
+        showToast(toastMsg, toastVariant);
+        setTimeout(() => {
+          btnElement.classList.remove("copied");
+          labelElement.textContent = defaultLabel;
+        }, 1600);
+      } catch (err) {
+        showToast("No se pudo acceder al portapapeles automáticamente", "orange");
+      }
+    }
+
+    function pickRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /**
+     * Smart Randomizer: Randomizes lighting, shot angle, lens, composition,
+     * medium, action, and atmosphere while keeping Trigger Word and Main Subject intact!
+     */
+    function randomizeSceneKeepingSubjectAndLora() {
+      state.activePresetId = null;
+      state.shot = pickRandomItem(SHOT_OPTIONS).id;
+      state.lighting = pickRandomItem(LIGHTING_OPTIONS).id;
+      state.lens = pickRandomItem(LENS_OPTIONS).id;
+      state.composition = pickRandomItem(COMPOSITION_OPTIONS).id;
+      state.envs = [pickRandomItem(ENVIRONMENT_OPTIONS).id];
+      state.actions = [pickRandomItem(ACTION_OPTIONS).id];
+
+      // Pick 2 or 3 random quality boosters
+      const shuffledBoosters = [...BOOSTER_OPTIONS].sort(() => 0.5 - Math.random());
+      state.boosters = shuffledBoosters.slice(0, 3).map((b) => b.id);
+
+      syncUIFromState();
+      saveCurrentPromptToHistory(false);
+      showToast("🎲 Variación aplicada (Sujeto y Trigger Word intactos)", "orange");
+    }
+
+    function clearAllToDefault() {
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      state.subjects = [];
+      state.actions = [];
+      state.envs = [];
+      state.boosters = ["masterpiece_8k"];
+      applyNegativePreset("anti_deform");
+      syncUIFromState();
+      showToast("🧹 Controles restaurados a los valores iniciales", "cyan");
+    }
+
+    function exportPromptAsTxt() {
+      const built = buildPositivePrompt();
+      const negText = document.getElementById("negativePromptTextarea").value.trim();
+      const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+
+      const content = [
+        "====================================================================",
+        "  COMFYUI PROMPT STUDIO PRO — EXPORTACIÓN TÉCNICA (100% LOCAL)",
+        "====================================================================",
+        `Fecha: ${timestamp}`,
+        `Arquitectura Objetivo: ${state.arch === "flux" ? "Flux.1 / Qwen Image (Lenguaje Natural)" : "SDXL / Pony Diffusion (Basado en Tags)"}`,
+        `Trigger Word (LoRA): ${built.triggerFormatted || "Ninguno"}`,
+        `Posición del Trigger: ${state.triggerPos === "start" ? "Al principio del prompt" : "Integrado en el sujeto"}`,
+        "",
+        "--------------------------------------------------------------------",
+        "POSITIVE PROMPT (INGLÉS TÉCNICO):",
+        "--------------------------------------------------------------------",
+        built.raw,
+        "",
+        "--------------------------------------------------------------------",
+        "NEGATIVE PROMPT (INGLÉS TÉCNICO):",
+        "--------------------------------------------------------------------",
+        negText,
+        "",
+        "--------------------------------------------------------------------",
+        "PARÁMETROS FOTOGRÁFICOS SELECCIONADOS:",
+        "--------------------------------------------------------------------",
+        `- Medio / Estilo: ${getOptionById(MEDIUM_OPTIONS, state.medium).label}`,
+        `- Plano / Ángulo: ${getOptionById(SHOT_OPTIONS, state.shot).label}`,
+        `- Iluminación: ${getOptionById(LIGHTING_OPTIONS, state.lighting).label}`,
+        `- Cámara / Lente: ${getOptionById(LENS_OPTIONS, state.lens).label}`,
+        `- Composición / Color: ${getOptionById(COMPOSITION_OPTIONS, state.composition).label}`,
+        "===================================================================="
+      ].join("\n");
+
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `comfyui-prompt-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      showToast("💾 Archivo .txt exportado correctamente", "cyan");
+    }
+
+    /*************************************************************************
+     * 6. LOCALSTORAGE HISTORY MODULE
+     *************************************************************************/
+
+    function loadHistoryFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            promptHistory = parsed;
+          }
+        }
+      } catch (e) {
+        promptHistory = [];
+      }
+      renderHistoryList();
+    }
+
+    function persistHistoryToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(promptHistory.slice(0, 18)));
+      } catch (e) {
+        // Ignore storage quota errors in restricted environments
+      }
+    }
+
+    function saveCurrentPromptToHistory(showNotification = true) {
+      const built = buildPositivePrompt();
+      const negText = document.getElementById("negativePromptTextarea").value.trim();
+
+      if (!built.raw) return;
+
+      // Avoid duplicate consecutive entries
+      if (promptHistory.length > 0 && promptHistory[0].positive === built.raw) {
+        if (showNotification) {
+          showToast("✨ Prompt actualizado y listo para ComfyUI", "cyan");
+        }
+        return;
+      }
+
+      const entry = {
+        id: `hist_${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+        arch: state.arch,
+        trigger: built.triggerFormatted || "",
+        positive: built.raw,
+        negative: negText,
+        savedState: JSON.parse(JSON.stringify(state))
+      };
+
+      promptHistory.unshift(entry);
+      promptHistory = promptHistory.slice(0, 15);
+      persistHistoryToStorage();
+      renderHistoryList();
+
+      if (showNotification) {
+        showToast("✨ Prompt generado y guardado en el historial local", "cyan");
+      }
+    }
+
+    function renderHistoryList() {
+      const container = document.getElementById("historyList");
+      container.innerHTML = "";
+
+      if (promptHistory.length === 0) {
+        container.innerHTML = `<div class="history-empty">Aún no hay prompts guardados. Pulsa "✨ Generar / Actualizar Prompt" o elige un Preset para registrar tu historial.</div>`;
+        return;
+      }
+
+      promptHistory.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+
+        const archBadge = `<span class="hist-arch-badge">${item.arch === "flux" ? "FLUX/QWEN" : "SDXL/PONY"}</span>`;
+        const loraBadge = item.trigger
+          ? `<span class="hist-lora-badge">🎯 ${item.trigger.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>`
+          : "";
+
+        div.innerHTML = `
+          <div class="history-meta">
+            <div class="history-badges">${archBadge}${loraBadge}</div>
+            <span>${item.timestamp}</span>
+          </div>
+          <div class="history-text"></div>
+          <div class="history-actions">
+            <button type="button" class="hist-btn btn-hist-load">🔄 Reutilizar</button>
+            <button type="button" class="hist-btn btn-hist-copy">📋 Copiar</button>
+          </div>
+        `;
+
+        div.querySelector(".history-text").textContent = item.positive;
+
+        div.querySelector(".btn-hist-copy").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(item.positive);
+            showToast("📋 Prompt del historial copiado al portapapeles", "cyan");
+          } catch (e) {
+            showToast("No se pudo copiar automáticamente", "orange");
+          }
+        });
+
+        div.querySelector(".btn-hist-load").addEventListener("click", () => {
+          if (item.savedState) {
+            state = JSON.parse(JSON.stringify(item.savedState));
+            document.getElementById("negativePromptTextarea").value = item.negative || "";
+            syncUIFromState();
+            showToast("🔄 Configuración restaurada desde el historial", "orange");
+          }
+        });
+
+        container.appendChild(div);
+      });
+    }
+
+    /*************************************************************************
+     * 7. INITIALIZATION & EVENT LISTENERS
+     *************************************************************************/
+
+    function initApp() {
+      // Count total dictionary entries + options
+      const totalTerms =
+        SPANISH_TO_ENGLISH_DICTIONARY.length +
+        SUBJECT_OPTIONS.length +
+        ACTION_OPTIONS.length +
+        ENVIRONMENT_OPTIONS.length +
+        MEDIUM_OPTIONS.length +
+        SHOT_OPTIONS.length +
+        LIGHTING_OPTIONS.length +
+        LENS_OPTIONS.length +
+        COMPOSITION_OPTIONS.length +
+        BOOSTER_OPTIONS.length;
+      document.getElementById("dictTermsCount").textContent = `${totalTerms}+`;
+
+      // Populate Selects
+      populateSelect("selectMedium", MEDIUM_OPTIONS);
+      populateSelect("selectShot", SHOT_OPTIONS);
+      populateSelect("selectLighting", LIGHTING_OPTIONS);
+      populateSelect("selectLens", LENS_OPTIONS);
+      populateSelect("selectComposition", COMPOSITION_OPTIONS);
+      populateSelect("selectNegativePreset", NEGATIVE_PRESETS);
+
+      // Collapsible headers
+      document.querySelectorAll(".card-header.collapsible").forEach((header) => {
+        header.addEventListener("click", () => {
+          const targetId = header.getAttribute("data-target");
+          const body = document.getElementById(targetId);
+          if (body) {
+            const isCollapsed = body.classList.toggle("collapsed");
+            header.classList.toggle("is-collapsed", isCollapsed);
+          }
+        });
+      });
+
+      // Architecture Buttons
+      document.getElementById("archFluxBtn").addEventListener("click", () => {
+        state.arch = "flux";
+        state.activePresetId = null;
+        syncUIFromState();
+        showToast("Modo Flux.1 / Qwen Image (Lenguaje Natural) activado", "cyan");
+      });
+
+      document.getElementById("archSdxlBtn").addEventListener("click", () => {
+        state.arch = "sdxl";
+        state.activePresetId = null;
+        syncUIFromState();
+        showToast("Modo SDXL / Pony (Basado en Tags) activado", "cyan");
+      });
+
+      document.getElementById("ponyPrefixToggle").addEventListener("change", (e) => {
+        state.ponyPrefix = e.target.checked;
+        syncUIFromState();
+      });
+
+      // Trigger Word Input & Quick Chips
+      document.getElementById("triggerWordInput").addEventListener("input", (e) => {
+        state.triggerWord = e.target.value;
+        state.activePresetId = null;
+        syncUIFromState();
+      });
+
+      document.querySelectorAll(".mini-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          state.triggerWord = chip.getAttribute("data-lora") || "";
+          state.activePresetId = null;
+          syncUIFromState();
+          if (state.triggerWord) {
+            showToast(`🎯 Trigger Word aplicado: ${state.triggerWord}`, "orange");
+          } else {
+            showToast("Trigger Word limpiado", "cyan");
+          }
+        });
+      });
+
+      document.getElementById("posStartBtn").addEventListener("click", () => {
+        state.triggerPos = "start";
+        syncUIFromState();
+      });
+
+      document.getElementById("posSubjectBtn").addEventListener("click", () => {
+        state.triggerPos = "subject";
+        syncUIFromState();
+      });
+
+      document.getElementById("loraWeightSlider").addEventListener("input", (e) => {
+        state.triggerWeight = parseFloat(e.target.value);
+        syncUIFromState();
+      });
+
+      document.getElementById("forceWeightSyntax").addEventListener("change", (e) => {
+        state.forceWeight = e.target.checked;
+        syncUIFromState();
+      });
+
+      // Custom Scene Free-Text Inputs (with live ES->EN translation)
+      document.getElementById("customSubjectInput").addEventListener("input", (e) => {
+        state.customSubject = e.target.value;
+        state.activePresetId = null;
+        syncUIFromState();
+      });
+
+      document.getElementById("customActionInput").addEventListener("input", (e) => {
+        state.customAction = e.target.value;
+        state.activePresetId = null;
+        syncUIFromState();
+      });
+
+      document.getElementById("customEnvInput").addEventListener("input", (e) => {
+        state.customEnv = e.target.value;
+        state.activePresetId = null;
+        syncUIFromState();
+      });
+
+      // Photographic Selects
+      const bindSelect = (selectId, stateKey) => {
+        document.getElementById(selectId).addEventListener("change", (e) => {
+          state[stateKey] = e.target.value;
+          state.activePresetId = null;
+          syncUIFromState();
+        });
+      };
+      bindSelect("selectMedium", "medium");
+      bindSelect("selectShot", "shot");
+      bindSelect("selectLighting", "lighting");
+      bindSelect("selectLens", "lens");
+      bindSelect("selectComposition", "composition");
+
+      // Negative Preset Select
+      document.getElementById("selectNegativePreset").addEventListener("change", (e) => {
+        applyNegativePreset(e.target.value);
+        showToast("Preset de Negative Prompt actualizado", "cyan");
+      });
+
+      // Copy Buttons
+      document.getElementById("btnCopyPositive").addEventListener("click", () => {
+        const built = buildPositivePrompt();
+        saveCurrentPromptToHistory(false);
+        copyTextToClipboard(
+          built.raw,
+          document.getElementById("btnCopyPositive"),
+          document.getElementById("copyPositiveText"),
+          "📋 Copiar Prompt",
+          "📋 ¡Prompt Positivo copiado al portapapeles!",
+          "orange"
+        );
+      });
+
+      document.getElementById("btnCopyNegative").addEventListener("click", () => {
+        const negText = document.getElementById("negativePromptTextarea").value.trim();
+        copyTextToClipboard(
+          negText,
+          document.getElementById("btnCopyNegative"),
+          document.getElementById("copyNegativeText"),
+          "📋 Copiar Negative",
+          "📋 ¡Negative Prompt copiado al portapapeles!",
+          "cyan"
+        );
+      });
+
+      // Action Buttons
+      document.getElementById("btnGeneratePrompt").addEventListener("click", () => {
+        syncUIFromState();
+        saveCurrentPromptToHistory(true);
+      });
+
+      document.getElementById("btnRandomize").addEventListener("click", () => {
+        randomizeSceneKeepingSubjectAndLora();
+      });
+
+      document.getElementById("btnClearAll").addEventListener("click", () => {
+        clearAllToDefault();
+      });
+
+      document.getElementById("btnExportTxt").addEventListener("click", () => {
+        exportPromptAsTxt();
+      });
+
+      document.getElementById("btnClearHistory").addEventListener("click", () => {
+        promptHistory = [];
+        persistHistoryToStorage();
+        renderHistoryList();
+        showToast("🗑️ Historial local vaciado", "cyan");
+      });
+
+      // Initialize default state & history
+      applyNegativePreset(state.negativePreset);
+      syncUIFromState();
+      loadHistoryFromStorage();
+      if (promptHistory.length === 0) {
+        saveCurrentPromptToHistory(false);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initApp);
+  </script>
+</body>
+</html>
